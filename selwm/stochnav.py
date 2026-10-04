@@ -18,11 +18,17 @@ SIZE = 48
 
 
 class StochNav:
-    def __init__(self, variant='cliff', n_envs=1, seed=0, step=0.05, wind=0.06, goal_r=0.06, max_steps=120):
+    def __init__(self, variant='cliff', n_envs=1, seed=0, step=0.05, wind=None, goal_r=0.06, max_steps=120):
         self.variant, self.E, self.step_size, self.goal_r, self.max_steps = variant, n_envs, step, goal_r, max_steps
         self.rng = np.random.default_rng(seed)
+        if wind is None:
+            wind = 0.035 if variant == 'bridge' else 0.06
         if variant == 'cliff':
             self.pit = np.array([[0.25, 0.0, 0.75, 0.30]])          # x0,y0,x1,y1
+            self.gust = np.zeros((0, 4))
+            self.wind_base, self.wind_gust = wind, wind
+        elif variant == 'bridge':
+            self.pit = np.array([[0.30, 0.0, 0.70, 0.28], [0.30, 0.72, 0.70, 1.0]])
             self.gust = np.zeros((0, 4))
             self.wind_base, self.wind_gust = wind, wind
         elif variant == 'gust':
@@ -36,8 +42,14 @@ class StochNav:
     # ---------------------------------------------------------------- sampling
     def sample_start_goal(self, n):
         r = self.rng
-        s = np.stack([r.uniform(0.06, 0.18, n), r.uniform(0.34, 0.46, n)], 1)
-        g = np.stack([r.uniform(0.82, 0.94, n), r.uniform(0.34, 0.46, n)], 1)
+        if self.variant == 'bridge':          # start and goal both near the same (random) edge of the corridor
+            side = np.where(r.random(n) < 0.5, -1.0, 1.0)
+            ys_ = 0.5 + side * r.uniform(0.15, 0.20, n)
+            yg_ = 0.5 + side * r.uniform(0.15, 0.20, n)
+        else:
+            ys_, yg_ = r.uniform(0.34, 0.46, n), r.uniform(0.34, 0.46, n)
+        s = np.stack([r.uniform(0.06, 0.18, n), ys_], 1)
+        g = np.stack([r.uniform(0.82, 0.94, n), yg_], 1)
         return s, g
 
     def reset(self, start=None, goal=None):
@@ -88,6 +100,8 @@ def _pit_mask(variant, device):
     m = torch.zeros(SIZE, SIZE, device=device)
     if variant == 'cliff':
         m = ((xs >= 0.25) & (xs <= 0.75) & (ys <= 0.30)).float()
+    elif variant == 'bridge':
+        m = ((xs >= 0.30) & (xs <= 0.70) & ((ys <= 0.28) | (ys >= 0.72))).float()
     return m, ys, xs
 
 

@@ -32,7 +32,7 @@ def cem(model, obs0, goal, H, N, M, iters=5, elite_frac=0.1, risk='expected', al
     ne = max(3, int(N * elite_frac))
     for _ in range(iters):
         acts = (mu + sd * torch.randn(E, N, H, A, device=obs0.device, generator=gen)).clamp(-1, 1)
-        feat = model.rollout(obs0, acts, M, gen)
+        feat = model.rollout(obs0, acts, M, gen, goal)
         c = model.cost(feat, goal)                              # (E,N,M)
         s = score_fn(c) if score_fn is not None else risk_score(c, risk, alpha)
         idx = s.topk(ne, dim=1, largest=False).indices
@@ -45,12 +45,14 @@ def cem(model, obs0, goal, H, N, M, iters=5, elite_frac=0.1, risk='expected', al
 class OracleModel:
     """Ground-truth stochastic simulator in state space (upper bound / benchmark sanity check)."""
 
-    def __init__(self, variant='cliff', deterministic=False, step=0.05, wind=0.06):
+    def __init__(self, variant='cliff', deterministic=False, step=0.05, wind=None, stage_w=0.0):
         from .stochnav import StochNav
         e = StochNav(variant, 1)
         self.pit = torch.tensor(e.pit, dtype=torch.float32)
-        self.step, self.wind, self.det = step, wind, deterministic
+        self.step, self.det = step, deterministic
+        self.wind = e.wind_base if wind is None else wind
         self.variant = variant
+        self.stage_w = stage_w
 
     def _in_pit(self, p):
         if self.pit.numel() == 0:
@@ -59,9 +61,10 @@ class OracleModel:
         x, y = p[..., 0:1], p[..., 1:2]
         return ((x >= r[:, 0]) & (x <= r[:, 2]) & (y >= r[:, 1]) & (y <= r[:, 3])).any(-1)
 
-    def rollout(self, p0, acts, M, gen):
+    def rollout(self, p0, acts, M, gen, goal=None):
         E, N, H, _ = acts.shape
         M_eff = 1 if self.det else M
+        acc = torch.zeros(E, N, M_eff, device=p0.device)
         p = p0[:, None, None, :].expand(E, N, M_eff, 2).clone()
         stuck = torch.zeros(E, N, M_eff, dtype=torch.bool, device=p0.device)
         for t in range(H):
@@ -74,10 +77,15 @@ class OracleModel:
             pn = torch.where(stuck[..., None], p, pn)
             stuck = stuck | self._in_pit(pn)
             p = pn
-        return torch.cat([p, stuck[..., None].float()], -1)
+            if self.stage_w > 0:
+                d = ((p - goal[:, None, None, :]) ** 2).sum(-1)
+                acc = acc + torch.where(stuck, torch.full_like(d, self.FAIL_COST), d) / H
+        out = torch.cat([p, stuck[..., None].float()], -1)
+        return torch.cat([out, acc[..., None]], -1) if self.stage_w > 0 else out
 
     FAIL_COST = 1.5
 
     def cost(self, feat, goal):
         c = ((feat[..., :2] - goal[:, None, None, :]) ** 2).sum(-1)
-        return torch.where(feat[..., 2] > 0.5, torch.full_like(c, self.FAIL_COST), c)
+        c = torch.where(feat[..., 2] > 0.5, torch.full_like(c, self.FAIL_COST), c)
+        return c + self.stage_w * feat[..., 3] if self.stage_w > 0 else c
