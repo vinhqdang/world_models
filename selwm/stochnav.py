@@ -134,11 +134,13 @@ def render(p, variant='cliff', fell=None, sigma_px=1.6):
     return img.reshape(*lead, 3, SIZE, SIZE)
 
 
-def collect(variant, n_steps_total=200_000, n_envs=500, seed=0, mix_goal=0.4):
+def collect(variant, n_steps_total=200_000, n_envs=500, seed=0, mix_goal=0.4, edge_frac=0.25):
     """Behaviour data: correlated random actions, plus noisy goal-directed segments so edge regions are covered.
 
     Returns arrays (p_t, a_t, p_{t+1}) with episodes restarted when an agent falls or reaches the goal.
     """
+    n_edge = int(edge_frac * n_steps_total)
+    n_steps_total = n_steps_total - n_edge
     env = StochNav(variant, n_envs, seed)
     rng = np.random.default_rng(seed + 1)
     T = n_steps_total // n_envs
@@ -172,5 +174,17 @@ def collect(variant, n_steps_total=200_000, n_envs=500, seed=0, mix_goal=0.4):
             env.fell[done] = False; env.reached[done] = False
             goaldir[done] = rng.random(int(done.sum())) < mix_goal
     keep = ~env._in(P.reshape(-1, 2).astype(np.float64), env.pit) | F.reshape(-1)     # a pit position is only valid as a fallen state
-    return (P.reshape(-1, 2)[keep], F.reshape(-1)[keep], A.reshape(-1, 2)[keep],
-            P2.reshape(-1, 2)[keep], F2.reshape(-1)[keep])
+    out = [P.reshape(-1, 2)[keep], F.reshape(-1)[keep], A.reshape(-1, 2)[keep], P2.reshape(-1, 2)[keep], F2.reshape(-1)[keep]]
+    if n_edge > 0 and len(env.pit):
+        # i.i.d. one-step transitions from a band just outside the hazard (deliberate data collection near the risk)
+        r = env.pit[rng.integers(0, len(env.pit), n_edge)]
+        px = rng.uniform(r[:, 0] - 0.04, r[:, 2] + 0.04)
+        band = rng.uniform(0.0, 0.14, n_edge)
+        py = np.where(r[:, 1] <= 0.0, r[:, 3] + band, r[:, 1] - band)
+        pe = np.clip(np.stack([px, py], 1), 0, 1)
+        pe = pe[~env._in(pe, env.pit)]
+        ae = rng.uniform(-1, 1, (len(pe), 2))
+        pn, fe = env.transition(pe, ae, rng)
+        out = [np.concatenate([o, e]) for o, e in zip(out, [pe.astype(np.float32), np.zeros(len(pe), bool), ae.astype(np.float32), pn.astype(np.float32), fe])]
+    perm = rng.permutation(len(out[0]))
+    return tuple(o[perm] for o in out)

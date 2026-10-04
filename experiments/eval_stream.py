@@ -9,12 +9,13 @@ import argparse, json, os, sys, time
 import numpy as np, torch
 sys.path.insert(0, '.')
 from selwm.stochnav import StochNav
-from selwm.jepa import JEPA, LatentModel
+from selwm.jepa import JEPA, LatentModel, EnsembleLatent
 from selwm.risk_plan import cem
 from selwm.noise_aware import NoiseAwareScorer, cem_raced, RiskController
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--ckpt', required=True); ap.add_argument('--planner', default='risk')
+ap.add_argument('--ckpt', required=True, help='checkpoint, or comma-separated checkpoints for --planner ensemble')
+ap.add_argument('--planner', default='risk'); ap.add_argument('--stage_w', type=float, default=1.0)
 ap.add_argument('--variant', default='cliff'); ap.add_argument('--E', type=int, default=64)
 ap.add_argument('--N', type=int, default=128); ap.add_argument('--M', type=int, default=16)
 ap.add_argument('--H', type=int, default=12); ap.add_argument('--iters', type=int, default=4)
@@ -28,9 +29,15 @@ ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cp
 args = ap.parse_args()
 dev = torch.device(args.device)
 
-ck = torch.load(args.ckpt, map_location=dev); a = ck['args']
-jepa = JEPA(a['kind'], a['dim'], sigreg_weight=a['sigreg']).to(dev); jepa.load_state_dict(ck['state']); jepa.eval()
-lm = LatentModel(jepa, args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn))
+def load(path):
+    ck = torch.load(path, map_location=dev); a = ck['args']
+    m = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg']).to(dev); m.load_state_dict(ck['state']); m.eval()
+    return m
+
+if args.planner == 'ensemble':
+    lm = EnsembleLatent([load(c) for c in args.ckpt.split(',')], args.variant, stage_w=args.stage_w)
+else:
+    lm = LatentModel(load(args.ckpt), args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn), stage_w=args.stage_w)
 ctrl = RiskController(args.control, args.eta, lam0=0.3) if args.control >= 0 else None
 
 env = StochNav(args.variant, args.E, 5000 + args.seed); env.reset()

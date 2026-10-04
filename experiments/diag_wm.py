@@ -29,7 +29,7 @@ def edist(X, Y):
 rows = []
 for ck_path in args.ckpt:
     ck = torch.load(ck_path, map_location=dev); a = ck['args']
-    m = JEPA(a['kind'], a['dim'], sigreg_weight=a['sigreg']).to(dev); m.load_state_dict(ck['state']); m.eval()
+    m = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg']).to(dev); m.load_state_dict(ck['state']); m.eval()
     env = StochNav('cliff', 1, 0)
     rng = np.random.default_rng(7)
     # states hugging the pit edge, actions pushing toward the pit / along the edge

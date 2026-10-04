@@ -166,3 +166,46 @@ class LatentModel:
         if self.stage_w > 0:
             return ((feat[..., :-1] - zg[:, None, None, :]) ** 2).sum(-1) + self.stage_w * feat[..., -1]
         return ((feat - zg[:, None, None, :]) ** 2).sum(-1)
+
+
+class EnsembleLatent:
+    """PETS-style baseline: an ensemble of independently trained deterministic JEPAs.
+
+    Each particle is rolled out by one member (round-robin); randomness comes only from member disagreement
+    (epistemic), not from aleatoric noise. Latents of the members live in different spaces, so the latent state is the
+    concatenation of the member latents and the per-particle cost is computed in the member's own space.
+    """
+
+    def __init__(self, members, variant, stage_w=0.0):
+        self.members, self.variant, self.stage_w = members, variant, stage_w
+        self.K = len(members)
+        self.D = members[0].enc.proj[-1].out_features
+        from .stochnav import render
+        self.render = render
+
+    def obs_to_latent(self, p, fell=None):
+        x = self.render(p, self.variant, fell)
+        with torch.no_grad():
+            return torch.cat([m.encode(x) for m in self.members], -1)
+
+    @torch.no_grad()
+    def rollout(self, z0, acts, M, gen, goal=None):
+        E, N, H, A = acts.shape
+        out = []
+        for m_idx in range(M):
+            k = m_idx % self.K
+            mem = self.members[k]
+            zk = z0[:, None, k * self.D:(k + 1) * self.D].expand(E, N, self.D)
+            gk = goal[:, None, k * self.D:(k + 1) * self.D]
+            acc = torch.zeros(E, N, device=z0.device)
+            z = zk
+            for t in range(H):
+                z = mem.pred(z, acts[:, :, t])[0]
+                if self.stage_w > 0:
+                    acc = acc + ((z - gk) ** 2).sum(-1) / H
+            c = ((z - gk) ** 2).sum(-1) + self.stage_w * acc
+            out.append(c)
+        return torch.stack(out, 2)[..., None]                      # (E,N,M,1) per-particle costs
+
+    def cost(self, feat, zg):
+        return feat[..., 0]
