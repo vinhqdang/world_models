@@ -187,7 +187,9 @@ def patch_policy(device='cuda'):
             for r, i in enumerate(replan):
                 k = LOG.calls[i]
                 LOG.calls[i] += 1
+                pl = out['actions'][r]                       # normalised action plan (H, A*block)
                 row = dict(env=i, k=k, d_start=float(d_start[r]), c_hat=float(ch[r]),
+                           a_absmean=float(pl.abs().mean()), a_absmax=float(pl.abs().max()), a_rms=float(pl.pow(2).mean().sqrt()),
                            p_start=float(np.linalg.norm(pr_all[i][-1] - gp_all[i][-1])))
                 if first is not None:
                     f0, l0 = first[r], last[r]
