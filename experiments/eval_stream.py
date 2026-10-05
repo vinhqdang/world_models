@@ -9,7 +9,7 @@ import argparse, json, os, sys, time
 import numpy as np, torch
 sys.path.insert(0, '.')
 from selwm.stochnav import StochNav
-from selwm.jepa import JEPA, LatentModel, EnsembleLatent, FailureAnchor, observe
+from selwm.jepa import JEPA, LatentModel, EnsembleLatent, FailureAnchor, observe, es_scale_loss
 from selwm.risk_plan import cem
 from selwm.noise_aware import NoiseAwareScorer, cem_raced, RiskController
 
@@ -24,6 +24,8 @@ ap.add_argument('--total_steps', type=int, default=400); ap.add_argument('--ep_l
 ap.add_argument('--lam', type=float, default=0.0); ap.add_argument('--tail', type=float, default=0.1)
 ap.add_argument('--shrink', type=int, default=0); ap.add_argument('--race', type=int, default=0); ap.add_argument('--crn', type=int, default=0)
 ap.add_argument('--control', type=float, default=-1, help='target failure rate delta (<0: off)'); ap.add_argument('--eta', type=float, default=0.05)
+ap.add_argument('--tta', default='', help='online predictor fine-tuning with the model-native loss: mse|nll|es'); ap.add_argument('--tta_lr', type=float, default=3e-4); ap.add_argument('--tta_steps', type=int, default=2)
+ap.add_argument('--adapt', type=int, default=0); ap.add_argument('--per_dim', type=int, default=0); ap.add_argument('--oracle_vec', default=''); ap.add_argument('--adapt_lr', type=float, default=0.03); ap.add_argument('--oracle_scale', type=float, default=0.0)
 ap.add_argument('--shift_at', type=int, default=-1); ap.add_argument('--shift_wind', type=float, default=0.10)
 ap.add_argument('--seed', type=int, default=0); ap.add_argument('--out', default=None)
 ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
@@ -53,6 +55,23 @@ else:
     anchor = FailureAnchor(mem.encode, args.variant, mem.obs, device=dev) if args.failcost else None
     lm = LatentModel(mem, args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn), stage_w=args.stage_w,
                      anchor=anchor, kappa=args.kappa, scale=start_goal_scale(mem.encode, mem.obs))
+log_s = None
+if args.planner == 'risk' and (args.adapt or args.oracle_scale > 0 or args.oracle_vec):
+    D = lm.m.pred.dim
+    if args.oracle_vec:
+        log_s = torch.tensor(np.log([float(x) for x in args.oracle_vec.split(',')]), dtype=torch.float32, requires_grad=False)
+    elif args.per_dim:
+        log_s = torch.zeros(D, requires_grad=bool(args.adapt))
+    else:
+        log_s = torch.tensor(float(np.log(args.oracle_scale)) if args.oracle_scale > 0 else 0.0, requires_grad=bool(args.adapt))
+    lm.log_s = log_s
+    s_opt = torch.optim.Adam([log_s], lr=args.adapt_lr) if args.adapt else None
+s_hist = []
+tta_opt, tta_buf = None, []
+if args.tta:
+    base_model = lm.m if args.planner != 'ensemble' else None
+    for p_ in base_model.pred.parameters(): p_.requires_grad_(True)
+    tta_opt = torch.optim.Adam(base_model.pred.parameters(), lr=args.tta_lr)
 ctrl = RiskController(args.control, args.eta, lam0=0.3) if args.control >= 0 else None
 
 env = StochNav(args.variant, args.E, 5000 + args.seed); env.reset()
@@ -76,7 +95,29 @@ for t in range(args.total_steps):
         plan = cem_raced(lm, z0, zg, args.H, args.N, M_stages, keep, iters=args.iters, lam=lam, tail=args.tail, shrink=bool(args.shrink), gen=gen)
     else:
         plan = cem(lm, z0, zg, args.H, args.N, args.M, iters=args.iters, gen=gen, score_fn=NoiseAwareScorer(lam, args.tail, bool(args.shrink)))
-    env.step(plan[:, 0].cpu().numpy()); t_ep += 1
+    alive_before = ~(env.fell | env.reached)
+    p_before, f_before = env.p.copy(), env.fell.copy()
+    act0 = plan[:, 0].cpu().numpy()
+    env.step(act0); t_ep += 1
+    if args.adapt and log_s is not None and alive_before.any():
+        with torch.no_grad():
+            z1 = lm.obs_to_latent(torch.tensor(env.p, dtype=torch.float32, device=dev), torch.tensor(env.fell, device=dev))
+        ab = torch.tensor(alive_before, device=dev)
+        loss = es_scale_loss(lm, z0[ab], torch.tensor(act0, dtype=torch.float32, device=dev)[ab], z1[ab], M=8)
+        s_opt.zero_grad(); loss.backward(); s_opt.step()
+        with torch.no_grad(): log_s.clamp_(-1.0, 2.0)
+    if tta_opt is not None and alive_before.any():
+        o0 = observe(torch.tensor(p_before, dtype=torch.float32, device=dev)[alive_before], torch.tensor(f_before, device=dev)[alive_before], args.variant, base_model.obs)
+        o1 = observe(torch.tensor(env.p, dtype=torch.float32, device=dev)[alive_before], torch.tensor(env.fell, device=dev)[alive_before], args.variant, base_model.obs)
+        ac = torch.tensor(act0, dtype=torch.float32, device=dev)[alive_before]
+        tta_buf.append((o0, ac, o1)); tta_buf[:] = tta_buf[-200:]
+        for _ in range(args.tta_steps):
+            idx = np.random.randint(0, len(tta_buf), 8)
+            O0 = torch.cat([tta_buf[i][0] for i in idx]); AC = torch.cat([tta_buf[i][1] for i in idx]); O1 = torch.cat([tta_buf[i][2] for i in idx])
+            loss, _ = base_model.loss(O0, AC, O1, M=8)
+            tta_opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(base_model.pred.parameters(), 1.0); tta_opt.step()
+    s_hist.append(float(log_s.exp().detach().mean()) if log_s is not None else 1.0)
+    if log_s is not None and log_s.numel() > 1: s_vec = log_s.exp().detach().tolist()
     done = env.fell | env.reached | (t_ep >= args.ep_len)
     if done.any():
         failed = env.fell[done]
@@ -97,6 +138,8 @@ res = dict(args=vars(args), episodes=stats['done'], success=stats['success'] / n
            phases={k: dict(v, success_rate=v['success'] / max(1, v['done']), fall_rate=v['fall'] / max(1, v['done'])) for k, v in phase_stats.items()},
            timeout_final_dist=(float(np.mean(np.linalg.norm(np.array(stats['to_pos']) - np.array(stats['to_goal']), axis=1))) if stats.get('to_pos') else None),
            timeout_mean_xy=(np.mean(stats['to_pos'], 0).round(3).tolist() if stats.get('to_pos') else None),
+           spread_scale_final=s_hist[-1], spread_vec_final=(s_vec if 's_vec' in globals() else None), spread_scale_mean_before=float(np.mean(s_hist[:max(1, args.shift_at)])) if s_hist else 1.0,
+           spread_scale_mean_after=float(np.mean(s_hist[args.shift_at:])) if (args.shift_at >= 0 and len(s_hist) > args.shift_at) else None,
            lam_final=float(log_lam[-1]), lam_mean=float(np.mean(log_lam)), sec=time.time() - t0)
 print(json.dumps({k: v for k, v in res.items() if k != 'args'}))
 if args.out:

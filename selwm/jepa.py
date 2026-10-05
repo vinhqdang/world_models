@@ -175,6 +175,7 @@ class LatentModel:
 
     def __init__(self, jepa, variant, stochastic=True, crn=False, stage_w=0.0, anchor=None, kappa=3.0, scale=1.0):
         self.m, self.variant, self.stochastic, self.crn, self.stage_w = jepa, variant, stochastic, crn, stage_w
+        self.log_s = None                      # optional predictive-spread multiplier (log scale), see spread_next
         self.anchor, self.kappa, self.scale = anchor, kappa, scale
         from .stochnav import render
         self.render = render
@@ -203,7 +204,7 @@ class LatentModel:
                     u = u_shared[:, :, :, t].expand(E, N, Me, self.m.noise_dim)
                 else:
                     u = torch.randn(E, N, Me, self.m.noise_dim, device=z0.device, generator=gen)
-                z = self.m.sample_next(z, a, u=u)
+                z = self.spread_next(z, a, u)
             elif det and self.m.kind != 'det':
                 z = self.m.pred(z, a)[0]                               # mean prediction of a gauss head
             else:
@@ -213,6 +214,14 @@ class LatentModel:
             if self.anchor is not None:
                 failed = torch.maximum(failed, (((z - self.anchor.z) ** 2).sum(-1) < self.anchor.tau).float())
         return torch.cat([z, acc[..., None], failed[..., None]], -1)
+
+    def spread_next(self, z, a, u):
+        """ES predictive sample whose deviation from the noise-free mode is scaled by exp(log_s)."""
+        zs = self.m.pred(z, a, u)[0]
+        if self.log_s is None:
+            return zs
+        z0 = self.m.pred(z, a, torch.zeros_like(u))[0]
+        return z0 + torch.exp(self.log_s) * (zs - z0)
 
     def cost(self, feat, zg):
         z, acc, failed = feat[..., :-2], feat[..., -2], feat[..., -1]
@@ -265,3 +274,14 @@ class EnsembleLatent:
 
     def cost(self, feat, zg):
         return feat[..., 0]
+
+
+def es_scale_loss(lm, z0, a, z1, M=8):
+    """Energy score of the (scaled) predictive distribution against the observed next latent; differentiable in lm.log_s."""
+    B = z0.shape[0]
+    u = torch.randn(M, B, lm.m.noise_dim)
+    zs = torch.stack([lm.spread_next(z0, a, u[m_]) for m_ in range(M)])           # (M,B,D)
+    t1 = (zs - z1).norm(dim=-1).mean(0)
+    d = (zs.unsqueeze(0) - zs.unsqueeze(1)).norm(dim=-1)
+    t2 = d.sum((0, 1)) / (M * (M - 1))
+    return (t1 - 0.5 * t2).mean()
