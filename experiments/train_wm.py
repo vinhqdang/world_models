@@ -19,6 +19,8 @@ ap.add_argument('--out', default='runs/wm.pt'); ap.add_argument('--device', defa
 args = ap.parse_args()
 os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
 dev = torch.device(args.device)
+if args.obs == 'fixed':
+    args.dim, args.sigreg = 3, 0.0
 torch.manual_seed(args.seed); np.random.seed(args.seed)
 
 cache = f'runs/data_{args.variant}_{args.n_data}_e{args.edge}.npz'

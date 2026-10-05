@@ -66,6 +66,13 @@ class StateEncoder(nn.Module):
         return self.net(x)
 
 
+class FixedEncoder(nn.Module):
+    """Frozen identity encoder on (x, y, fallen): no parameters, so the latent metric is faithful by construction."""
+
+    def forward(self, x):
+        return x
+
+
 def observe(p, fell, variant, mode):
     """Observation fed to the encoder: rendered frame ('pixel') or (x, y, fallen) features ('state')."""
     from .stochnav import render
@@ -101,7 +108,7 @@ class JEPA(nn.Module):
     def __init__(self, kind='det', dim=64, noise_dim=8, sigreg_weight=0.09, size=48, obs='pixel'):
         super().__init__()
         self.kind, self.obs = kind, obs
-        self.enc = Encoder(dim, size) if obs == 'pixel' else StateEncoder(dim)
+        self.enc = Encoder(dim, size) if obs == 'pixel' else (FixedEncoder() if obs == 'fixed' else StateEncoder(dim))
         self.pred = Predictor(dim, 2, kind, noise_dim)
         self.sigreg = SIGReg()
         self.lam = sigreg_weight
@@ -111,7 +118,7 @@ class JEPA(nn.Module):
     def loss(self, x0, a, x1, M=8):
         z = self.enc(torch.cat([x0, x1], 0))
         z0, z1 = z.chunk(2, 0)
-        reg = self.sigreg(z)
+        reg = self.sigreg(z) if self.lam > 0 else z.new_zeros(())
         if self.kind == 'det':
             zp, _ = self.pred(z0, a)
             pl = (zp - z1).pow(2).mean()

@@ -8,7 +8,7 @@ import argparse, itertools, json, os, subprocess, sys
 ap = argparse.ArgumentParser()
 ap.add_argument('--variant', default='cliff'); ap.add_argument('--seeds', type=int, default=3)
 ap.add_argument('--root', default='suite'); ap.add_argument('--steps', type=int, default=10000)
-ap.add_argument('--dim', type=int, default=8); ap.add_argument('--E', type=int, default=64)
+ap.add_argument('--dim', type=int, default=3); ap.add_argument('--obs', default='fixed'); ap.add_argument('--E', type=int, default=64)
 ap.add_argument('--total_steps', type=int, default=360); ap.add_argument('--N', type=int, default=64)
 ap.add_argument('--M', type=int, default=8); ap.add_argument('--H', type=int, default=10)
 ap.add_argument('--only', default='')
@@ -27,7 +27,7 @@ def sh(cmd):
 for kind, seed in itertools.product(['det', 'gauss', 'es'], range(args.seeds)):
     f = f'{args.root}/ckpt/{kind}_s{seed}.pt'
     if not os.path.exists(f):
-        sh(f'python3 -u experiments/train_wm.py --kind {kind} --obs state --dim {args.dim} --steps {args.steps} --n_data 300000 '
+        sh(f'python3 -u experiments/train_wm.py --kind {kind} --obs {args.obs} --dim {args.dim} --steps {args.steps} --n_data 300000 '
            f'--variant {args.variant} --seed {seed} --device cuda --out {f} > {args.root}/ckpt/log_{kind}_s{seed}.txt 2>&1')
         print('trained', f, flush=True)
 

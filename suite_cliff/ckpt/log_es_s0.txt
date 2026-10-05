@@ -17,3 +17,10 @@ step   5500 loss 0.4277 pred 0.2001 sigreg 2.5286  763s
 step   6000 loss 0.4125 pred 0.1909 sigreg 2.4617  820s
 step   6500 loss 0.4007 pred 0.1827 sigreg 2.4227  879s
 step   7000 loss 0.3947 pred 0.1830 sigreg 2.3522  938s
+step   7500 loss 0.3877 pred 0.1768 sigreg 2.3428  995s
+step   8000 loss 0.3928 pred 0.1791 sigreg 2.3752  1052s
+step   8500 loss 0.3632 pred 0.1695 sigreg 2.1521  1110s
+step   9000 loss 0.4163 pred 0.1810 sigreg 2.6148  1167s
+step   9500 loss 0.4083 pred 0.1877 sigreg 2.4510  1225s
+step  10000 loss 0.3549 pred 0.1728 sigreg 2.0235  1283s
+saved suite_cliff/ckpt/es_s0.pt

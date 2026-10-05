@@ -6,3 +6,13 @@ step      1 loss 14.4112 pred 0.5677 sigreg 153.8166  0s
 step    500 loss 1.1204 pred 0.4641 sigreg 7.2921  58s
 step   1000 loss 0.7905 pred 0.4454 sigreg 3.8348  116s
 step   1500 loss 0.7248 pred 0.3949 sigreg 3.6655  174s
+step   2000 loss 0.7092 pred 0.3503 sigreg 3.9871  232s
+step   2500 loss 0.5918 pred 0.3199 sigreg 3.0213  289s
+step   3000 loss 0.5709 pred 0.3178 sigreg 2.8123  347s
+step   3500 loss 0.5884 pred 0.2931 sigreg 3.2808  405s
+step   4000 loss 0.5120 pred 0.2405 sigreg 3.0166  463s
+step   4500 loss 0.5446 pred 0.2560 sigreg 3.2064  520s
+step   5000 loss 0.4846 pred 0.2295 sigreg 2.8346  578s
+step   5500 loss 0.4766 pred 0.2368 sigreg 2.6644  635s
+step   6000 loss 0.4173 pred 0.2012 sigreg 2.4014  692s
+step   6500 loss 0.4487 pred 0.2062 sigreg 2.6948  749s

@@ -22,8 +22,8 @@ class StochNav:
         self.variant, self.E, self.step_size, self.goal_r, self.max_steps = variant, n_envs, step, goal_r, max_steps
         self.rng = np.random.default_rng(seed)
         if wind is None:
-            wind = 0.035 if variant == 'bridge' else 0.06
-        if variant == 'cliff':
+            wind = {'bridge': 0.035, 'cliff_hi': 0.09}.get(variant, 0.06)
+        if variant in ('cliff', 'cliff_hi'):
             self.pit = np.array([[0.25, 0.0, 0.75, 0.30]])          # x0,y0,x1,y1
             self.gust = np.zeros((0, 4))
             self.wind_base, self.wind_gust = wind, wind
@@ -98,7 +98,7 @@ class StochNav:
 def _pit_mask(variant, device):
     ys, xs = torch.meshgrid(torch.linspace(0, 1, SIZE, device=device), torch.linspace(0, 1, SIZE, device=device), indexing='ij')
     m = torch.zeros(SIZE, SIZE, device=device)
-    if variant == 'cliff':
+    if variant in ('cliff', 'cliff_hi'):
         m = ((xs >= 0.25) & (xs <= 0.75) & (ys <= 0.30)).float()
     elif variant == 'bridge':
         m = ((xs >= 0.30) & (xs <= 0.70) & ((ys <= 0.28) | (ys >= 0.72))).float()
