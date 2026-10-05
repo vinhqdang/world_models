@@ -1,19 +1,19 @@
 | arm | runs | episodes | success | fall | timeout |
 |---|---|---|---|---|---|
-| crn_chain3 | 1 | 52 | 0.827 [0.731, 0.923] | 0.038 [0.000, 0.096] | 0.135 [0.058, 0.231] |
-| dir_oa | 1 | 45 | 0.778 [0.644, 0.889] | 0.000 [0.000, 0.000] | 0.222 [0.111, 0.356] |
-| indep | 1 | 43 | 0.767 [0.628, 0.884] | 0.047 [0.000, 0.116] | 0.186 [0.070, 0.302] |
+| crn_chain3 | 3 | 161 | 0.839 [0.776, 0.894] | 0.031 [0.006, 0.062] | 0.130 [0.081, 0.186] |
+| dir_oa | 3 | 142 | 0.803 [0.739, 0.866] | 0.028 [0.007, 0.056] | 0.169 [0.113, 0.225] |
+| indep | 3 | 141 | 0.738 [0.667, 0.809] | 0.085 [0.043, 0.135] | 0.177 [0.113, 0.241] |
 
 Paired vs `indep` (matched (model, seed, slot, episode-index) episodes; McNemar exact on success, and on fall):
 
 | arm | n matched | success diff | McNemar p (succ) | fall diff | McNemar p (fall) | timeout diff |
 |---|---|---|---|---|---|---|
-| crn_chain3 | 41 | +0.049 | 0.727 | -0.024 | 1.000 | -0.024 |
-| dir_oa | 40 | +0.000 | 1.000 | -0.050 | 0.500 | +0.050 |
+| crn_chain3 | 131 | +0.076 | 0.076 | -0.053 | 0.092 | -0.023 |
+| dir_oa | 127 | +0.063 | 0.243 | -0.055 | 0.092 | -0.008 |
 
 Paired vs `crn_chain3` (matched (model, seed, slot, episode-index) episodes; McNemar exact on success, and on fall):
 
 | arm | n matched | success diff | McNemar p (succ) | fall diff | McNemar p (fall) | timeout diff |
 |---|---|---|---|---|---|---|
-| dir_oa | 44 | -0.045 | 0.754 | -0.023 | 1.000 | +0.068 |
-| indep | 41 | -0.049 | 0.727 | +0.024 | 1.000 | +0.024 |
+| dir_oa | 138 | -0.007 | 1.000 | -0.007 | 1.000 | +0.014 |
+| indep | 131 | -0.076 | 0.076 | +0.053 | 0.092 | +0.023 |
