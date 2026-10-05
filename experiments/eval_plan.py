@@ -23,7 +23,7 @@ dev = torch.device(args.device)
 
 ck = torch.load(args.ckpt, map_location=dev)
 a = ck['args']
-jepa = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg']).to(dev)
+jepa = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg'], obs=a.get('obs', 'pixel')).to(dev)
 jepa.load_state_dict(ck['state']); jepa.eval()
 stochastic = args.planner != 'mean'
 lm = LatentModel(jepa, args.variant, stochastic=stochastic, crn=bool(args.crn))

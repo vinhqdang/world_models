@@ -5,8 +5,8 @@ python experiments/train_wm.py --kind es --steps 8000 --out runs/es_s0.pt
 import argparse, json, os, sys, time
 import numpy as np, torch
 sys.path.insert(0, '.')
-from selwm.stochnav import collect, render
-from selwm.jepa import JEPA
+from selwm.stochnav import collect
+from selwm.jepa import JEPA, observe
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--kind', default='es'); ap.add_argument('--variant', default='cliff')
@@ -14,7 +14,7 @@ ap.add_argument('--steps', type=int, default=8000); ap.add_argument('--bs', type
 ap.add_argument('--lr', type=float, default=5e-4); ap.add_argument('--seed', type=int, default=0)
 ap.add_argument('--n_data', type=int, default=300_000); ap.add_argument('--dim', type=int, default=64)
 ap.add_argument('--sigreg', type=float, default=0.09); ap.add_argument('--M', type=int, default=8)
-ap.add_argument('--edge', type=float, default=0.35); ap.add_argument('--noise_dim', type=int, default=8)
+ap.add_argument('--obs', default='pixel'); ap.add_argument('--edge', type=float, default=0.25); ap.add_argument('--noise_dim', type=int, default=8)
 ap.add_argument('--out', default='runs/wm.pt'); ap.add_argument('--device', default='cpu')
 args = ap.parse_args()
 os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
@@ -32,13 +32,13 @@ n = len(P); ntr = int(0.95 * n)
 T = lambda x, dt=torch.float32: torch.as_tensor(x, dtype=dt, device=dev)
 P, A, P2 = T(P), T(A), T(P2); F, F2 = T(F, torch.bool), T(F2, torch.bool)
 
-model = JEPA(args.kind, args.dim, noise_dim=args.noise_dim, sigreg_weight=args.sigreg).to(dev)
+model = JEPA(args.kind, args.dim, noise_dim=args.noise_dim, sigreg_weight=args.sigreg, obs=args.obs).to(dev)
 opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-3)
 sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=args.lr, total_steps=args.steps, pct_start=0.05)
 t0 = time.time()
 for step in range(1, args.steps + 1):
     idx = torch.randint(0, ntr, (args.bs,), device=dev)
-    x0 = render(P[idx], args.variant, F[idx]); x1 = render(P2[idx], args.variant, F2[idx])
+    x0 = observe(P[idx], F[idx], args.variant, args.obs); x1 = observe(P2[idx], F2[idx], args.variant, args.obs)
     loss, info = model.loss(x0, A[idx], x1, M=args.M)
     opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step(); sched.step()
     if step % 500 == 0 or step == 1:

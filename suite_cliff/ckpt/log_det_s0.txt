@@ -1,0 +1,26 @@
+data (299250, 2) fall transitions 0.059
+/home/user/world_models/experiments/train_wm.py:45: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  print(f'step {step:6d} loss {float(loss):.4f} pred {info["pred"]:.4f} sigreg {info["sigreg"]:.4f}  {time.time()-t0:.0f}s', flush=True)
+step      1 loss 14.6422 pred 0.0886 sigreg 161.7068  0s
+step    500 loss 0.5992 pred 0.1021 sigreg 5.5239  30s
+step   1000 loss 0.3826 pred 0.1131 sigreg 2.9946  61s
+step   1500 loss 0.3596 pred 0.1049 sigreg 2.8295  92s
+step   2000 loss 0.3126 pred 0.1004 sigreg 2.3582  122s
+step   2500 loss 0.2941 pred 0.0901 sigreg 2.2672  152s
+step   3000 loss 0.2737 pred 0.0948 sigreg 1.9870  183s
+step   3500 loss 0.2776 pred 0.0977 sigreg 1.9988  214s
+step   4000 loss 0.2388 pred 0.0767 sigreg 1.8008  245s
+step   4500 loss 0.2320 pred 0.0822 sigreg 1.6645  275s
+step   5000 loss 0.2160 pred 0.0802 sigreg 1.5091  306s
+step   5500 loss 0.2811 pred 0.0769 sigreg 2.2690  336s
+step   6000 loss 0.2344 pred 0.0740 sigreg 1.7830  367s
+step   6500 loss 0.2326 pred 0.0780 sigreg 1.7177  397s
+step   7000 loss 0.2145 pred 0.0655 sigreg 1.6552  428s
+step   7500 loss 0.2145 pred 0.0659 sigreg 1.6512  458s
+step   8000 loss 0.2307 pred 0.0635 sigreg 1.8581  488s
+step   8500 loss 0.2023 pred 0.0729 sigreg 1.4384  519s
+step   9000 loss 0.2104 pred 0.0657 sigreg 1.6078  549s
+step   9500 loss 0.1867 pred 0.0618 sigreg 1.3881  579s
+step  10000 loss 0.2110 pred 0.0670 sigreg 1.6004  610s
+saved suite_cliff/ckpt/det_s0.pt

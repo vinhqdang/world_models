@@ -54,6 +54,27 @@ class Encoder(nn.Module):
         return self.proj(self.fc(self.conv(x)))
 
 
+class StateEncoder(nn.Module):
+    """MLP encoder for low-dimensional observations (x, y, fallen-flag)."""
+
+    def __init__(self, dim=16, din=3, hid=256):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(din, hid), nn.GELU(), nn.Linear(hid, hid), nn.GELU(), nn.Linear(hid, hid), nn.GELU(),
+                                 nn.Linear(hid, hid), nn.BatchNorm1d(hid), nn.GELU(), nn.Linear(hid, dim))
+
+    def forward(self, x):
+        return self.net(x)
+
+
+def observe(p, fell, variant, mode):
+    """Observation fed to the encoder: rendered frame ('pixel') or (x, y, fallen) features ('state')."""
+    from .stochnav import render
+    if mode == 'pixel':
+        return render(p, variant, fell)
+    f = torch.zeros(p.shape[:-1] + (1,), device=p.device) if fell is None else fell.to(p.dtype).unsqueeze(-1)
+    return torch.cat([p * 2 - 1, f], -1)
+
+
 class Predictor(nn.Module):
     def __init__(self, dim=64, adim=2, kind='det', noise_dim=8, hid=512, depth=3):
         super().__init__()
@@ -77,10 +98,10 @@ class Predictor(nn.Module):
 
 
 class JEPA(nn.Module):
-    def __init__(self, kind='det', dim=64, noise_dim=8, sigreg_weight=0.09, size=48):
+    def __init__(self, kind='det', dim=64, noise_dim=8, sigreg_weight=0.09, size=48, obs='pixel'):
         super().__init__()
-        self.kind = kind
-        self.enc = Encoder(dim, size)
+        self.kind, self.obs = kind, obs
+        self.enc = Encoder(dim, size) if obs == 'pixel' else StateEncoder(dim)
         self.pred = Predictor(dim, 2, kind, noise_dim)
         self.sigreg = SIGReg()
         self.lam = sigreg_weight
@@ -124,17 +145,35 @@ class JEPA(nn.Module):
         return self.pred(z, a)[0]
 
 
+class FailureAnchor:
+    """Exemplar-based failure detector in latent space (decoder-free): z_fail = mean embedding of annotated failure frames,
+    tau = distance threshold that best separates failure from non-failure embeddings on labelled data."""
+
+    def __init__(self, encode_fn, variant, mode, n=20000, seed=999, device='cpu'):
+        from .stochnav import collect
+        P, F, A, P2, F2 = collect(variant, n, 200, seed=seed)
+        p = torch.tensor(P2, dtype=torch.float32, device=device); f = torch.tensor(F2, device=device)
+        with torch.no_grad():
+            z = encode_fn(observe(p, f, variant, mode))
+        self.z = z[f].mean(0)
+        d = ((z - self.z) ** 2).sum(-1)
+        cand = torch.quantile(d, torch.linspace(0.01, 0.99, 99, device=device))
+        acc = torch.stack([((d < c) == f).float().mean() for c in cand])
+        self.tau = float(cand[acc.argmax()])
+        self.acc = float(acc.max())
+
+
 class LatentModel:
     """Adapter used by selwm.risk_plan: rollouts in latent space, cost = squared distance to the goal embedding."""
 
-    def __init__(self, jepa, variant, stochastic=True, crn=False, stage_w=0.0):
+    def __init__(self, jepa, variant, stochastic=True, crn=False, stage_w=0.0, anchor=None, kappa=3.0, scale=1.0):
         self.m, self.variant, self.stochastic, self.crn, self.stage_w = jepa, variant, stochastic, crn, stage_w
+        self.anchor, self.kappa, self.scale = anchor, kappa, scale
         from .stochnav import render
         self.render = render
 
     def obs_to_latent(self, p, fell=None):
-        x = self.render(p, self.variant, fell)
-        return self.m.encode(x)
+        return self.m.encode(observe(p, fell, self.variant, self.m.obs))
 
     def rollout(self, z0, acts, M, gen, goal=None):
         with torch.no_grad(), torch.autocast(device_type='cuda', dtype=torch.float16, enabled=z0.is_cuda):
@@ -147,6 +186,7 @@ class LatentModel:
         z = z0[:, None, None, :].expand(E, N, Me, z0.shape[-1])
         u_shared = None
         acc = torch.zeros(E, N, Me, device=z0.device)
+        failed = torch.zeros(E, N, Me, device=z0.device)
         for t in range(H):
             a = acts[:, :, t, None, :].expand(E, N, Me, A)
             if self.m.kind == 'es' and not det:
@@ -163,12 +203,14 @@ class LatentModel:
                 z = self.m.sample_next(z, a, gen=gen)
             if self.stage_w > 0:
                 acc = acc + ((z - goal[:, None, None, :]) ** 2).sum(-1) / H
-        return torch.cat([z, acc[..., None]], -1) if self.stage_w > 0 else z
+            if self.anchor is not None:
+                failed = torch.maximum(failed, (((z - self.anchor.z) ** 2).sum(-1) < self.anchor.tau).float())
+        return torch.cat([z, acc[..., None], failed[..., None]], -1)
 
     def cost(self, feat, zg):
-        if self.stage_w > 0:
-            return ((feat[..., :-1] - zg[:, None, None, :]) ** 2).sum(-1) + self.stage_w * feat[..., -1]
-        return ((feat - zg[:, None, None, :]) ** 2).sum(-1)
+        z, acc, failed = feat[..., :-2], feat[..., -2], feat[..., -1]
+        c = ((z - zg[:, None, None, :]) ** 2).sum(-1) + self.stage_w * acc
+        return c / self.scale + (self.kappa * failed if self.anchor is not None else 0.0)
 
 
 class EnsembleLatent:
@@ -179,15 +221,16 @@ class EnsembleLatent:
     concatenation of the member latents and the per-particle cost is computed in the member's own space.
     """
 
-    def __init__(self, members, variant, stage_w=0.0):
+    def __init__(self, members, variant, stage_w=0.0, anchors=None, kappa=3.0, scale=1.0):
         self.members, self.variant, self.stage_w = members, variant, stage_w
+        self.anchors, self.kappa, self.scale = anchors, kappa, scale
         self.K = len(members)
-        self.D = members[0].enc.proj[-1].out_features
+        self.D = members[0].pred.dim
         from .stochnav import render
         self.render = render
 
     def obs_to_latent(self, p, fell=None):
-        x = self.render(p, self.variant, fell)
+        x = observe(p, fell, self.variant, self.members[0].obs)
         with torch.no_grad():
             return torch.cat([m.encode(x) for m in self.members], -1)
 
@@ -201,12 +244,15 @@ class EnsembleLatent:
             zk = z0[:, None, k * self.D:(k + 1) * self.D].expand(E, N, self.D)
             gk = goal[:, None, k * self.D:(k + 1) * self.D]
             acc = torch.zeros(E, N, device=z0.device)
+            failed = torch.zeros(E, N, device=z0.device)
             z = zk
             for t in range(H):
                 z = mem.pred(z, acts[:, :, t])[0]
                 if self.stage_w > 0:
                     acc = acc + ((z - gk) ** 2).sum(-1) / H
-            c = ((z - gk) ** 2).sum(-1) + self.stage_w * acc
+                if self.anchors is not None:
+                    failed = torch.maximum(failed, (((z - self.anchors[k].z) ** 2).sum(-1) < self.anchors[k].tau).float())
+            c = (((z - gk) ** 2).sum(-1) + self.stage_w * acc) / self.scale + (self.kappa * failed if self.anchors is not None else 0.0)
             out.append(c)
         return torch.stack(out, 2)[..., None]                      # (E,N,M,1) per-particle costs
 

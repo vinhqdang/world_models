@@ -8,7 +8,7 @@ import argparse, json, sys
 import numpy as np, torch
 sys.path.insert(0, '.')
 from selwm.stochnav import StochNav, render
-from selwm.jepa import JEPA
+from selwm.jepa import JEPA, observe
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--ckpt', nargs='+', required=True); ap.add_argument('--K', type=int, default=256)
@@ -29,7 +29,7 @@ def edist(X, Y):
 rows = []
 for ck_path in args.ckpt:
     ck = torch.load(ck_path, map_location=dev); a = ck['args']
-    m = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg']).to(dev); m.load_state_dict(ck['state']); m.eval()
+    m = JEPA(a['kind'], a['dim'], noise_dim=a.get('noise_dim', 8), sigreg_weight=a['sigreg'], obs=a.get('obs', 'pixel')).to(dev); m.load_state_dict(ck['state']); m.eval()
     env = StochNav('cliff', 1, 0)
     rng = np.random.default_rng(7)
     # states hugging the pit edge, actions pushing toward the pit / along the edge
@@ -37,13 +37,13 @@ for ck_path in args.ckpt:
     acts = np.stack([rng.uniform(-0.2, 1.0, args.n_states), rng.uniform(-1.0, 0.2, args.n_states)], 1)
     ed, mean_err, p_true, p_model, edist_det = [], [], [], [], []
     with torch.no_grad():
-        z_black = m.encode(render(torch.zeros(1, 2, device=dev), 'cliff', torch.ones(1, dtype=torch.bool, device=dev)))[0]
+        z_black = m.encode(observe(torch.zeros(1, 2, device=dev), torch.ones(1, dtype=torch.bool, device=dev), 'cliff', m.obs))[0]
         for i in range(args.n_states):
             p = np.repeat([[px[i], py[i]]], args.K, 0); act = np.repeat([acts[i]], args.K, 0)
             pn, fell = env.transition(p, act, rng)
-            x1 = render(torch.tensor(pn, dtype=torch.float32, device=dev), 'cliff', torch.tensor(fell, device=dev))
+            x1 = observe(torch.tensor(pn, dtype=torch.float32, device=dev), torch.tensor(fell, device=dev), 'cliff', m.obs)
             zt = m.encode(x1)                                                       # true next-latent samples
-            z0 = m.encode(render(torch.tensor(p[:1], dtype=torch.float32, device=dev), 'cliff'))
+            z0 = m.encode(observe(torch.tensor(p[:1], dtype=torch.float32, device=dev), None, 'cliff', m.obs))
             zs = m.sample_next(z0.expand(args.K, -1), torch.tensor(act, dtype=torch.float32, device=dev))
             ed.append(edist(zs, zt))
             mean_err.append(float((zs.mean(0) - zt.mean(0)).norm()))
