@@ -1,3 +1,4 @@
 config                       runs   eps  success   fall  timeout  medsteps  sec/run
 lat_fbconst_N32                3   236  0.873  0.085  0.042    45.8   406   seedSD(succ)=0.013
+lat_fbstep_N32                 3   239  0.908  0.054  0.038    47.2   390   seedSD(succ)=0.022
 lat_olref_N32                  3   191  0.827  0.079  0.094    56.2   331   seedSD(succ)=0.010
