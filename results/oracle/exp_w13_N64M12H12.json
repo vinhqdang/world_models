@@ -1,0 +1,1 @@
+{"args": {"wind": 0.13, "planner": "expected", "N": 64, "M": 12, "H": 12, "iters": 3, "E": 64, "steps": 450, "seed": 211, "out": "results/oracle/exp_w13_N64M12H12.json"}, "episodes": 381, "success": 0.7611548556430446, "fall": 0.09711286089238845, "timeout": 0.14173228346456693, "median_steps": 53.0, "sec": 36.90240025520325}

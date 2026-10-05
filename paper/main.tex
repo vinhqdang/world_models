@@ -1,0 +1,292 @@
+\documentclass[preprint,12pt]{elsarticle}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,graphicx,multirow,xcolor}
+\usepackage[hidelinks]{hyperref}
+\providecommand{\detSucc}{--}\providecommand{\detFall}{--}\providecommand{\detTime}{--}\providecommand{\detN}{--}
+\providecommand{\enstSucc}{--}\providecommand{\enstFall}{--}\providecommand{\enstTime}{--}\providecommand{\enstN}{--}
+\providecommand{\gaussSucc}{--}\providecommand{\gaussFall}{--}\providecommand{\gaussTime}{--}\providecommand{\gaussN}{--}
+\input{tables/macros}
+\journal{TBD}
+
+\begin{document}
+\begin{frontmatter}
+
+\title{Planning with stochastic latent world models: distributional predictors, coupled noise and feedback}
+
+\author[buv]{Quang-Vinh Dang\corref{cor1}}
+\ead{vinh.dq4@buv.edu.vn}
+\cortext[cor1]{Corresponding author. ORCID: 0000-0002-3877-8024}
+\address[buv]{British University Vietnam, Hung Yen, Vietnam}
+
+\begin{abstract}
+Decoder-free latent world models such as LeWorldModel plan by rolling a deterministic predictor forward and minimising the latent distance to a goal embedding.
+When the dynamics are stochastic, a deterministic predictor learns the conditional mean, which can correspond to no reachable state, and the planner cannot see the tail events that decide success.
+We study sampling-based planning with stochastic latent predictors on a controlled hazard-navigation benchmark in which the true simulator provides a reference.
+Replacing the deterministic predictor by a distributional one trained with the energy score, and averaging the planning cost over noise particles, raises the success rate from \detSucc{} to \esolSucc{} and lowers the fall rate from \detFall{} to \esolFall{} at the same horizon and candidate budget.
+Two classical devices then account for most of the remaining gap to the simulator-based planner: sharing the noise across candidates and across replans (common random numbers) mainly removes falls, and parameterising each plan as nominal actions plus a feedback gain on the deviation of the sampled latent from its noise-free rollout mainly removes timeouts.
+Together they reach success \esfbcrnSucc{}, fall \esfbcrnFall{} and timeout \esfbcrnTime{} for 12.5\,\% extra compute.
+We give elementary results that explain each effect (a regret identity for mean-embedding planning, tail blindness amplified by selection, a strict open-loop gap with an absorbing boundary) and report negative results for risk-averse scoring, empirical-Bayes shrinkage, particle racing, importance sampling, failure-rate control and several test-time adaptation schemes.
+The benchmark is low-dimensional and uses a frozen encoder; we discuss why, and what this limits.
+\end{abstract}
+
+\begin{keyword}
+world models \sep model predictive control \sep stochastic dynamics \sep energy score \sep common random numbers \sep feedback planning
+\end{keyword}
+\end{frontmatter}
+
+% =====================================================================================================
+\section{Introduction}\label{sec:intro}
+
+Joint-embedding predictive architectures (JEPAs) have become a practical way to learn world models for control without reconstructing pixels.
+Recent systems plan with a frozen encoder and a deterministic latent predictor: a population-based optimiser such as the cross-entropy method (CEM) proposes action sequences, the predictor is rolled out, and the sequence whose final embedding is closest to the goal embedding is executed~\cite{zhou2024dinowm,maes2026lewm}.
+The predictor is trained with a mean-squared loss, so it estimates the conditional mean embedding.
+The authors of the JEPA-WM study note that environments with aleatoric uncertainty would require stochastic predictors~\cite{terver2025jepawm}.
+
+This matters when the dynamics have rare but costly outcomes.
+Consider an agent that must cross a region next to a pit while a random wind pushes it sideways.
+Averaged over the wind, the predicted next state is the same for a path hugging the pit edge and for a path that keeps a safe distance, so a deterministic planner prefers the shorter, riskier one.
+The planner is not wrong about the average; it is blind to the spread.
+Figure~\ref{fig:benchmark} shows this on the benchmark used in this paper.
+
+Stochastic and distributional JEPA predictors have appeared recently.
+Branch-JEPA trains a set of weighted latent successors with the energy score~\cite{branchjepa2026}, a variational JEPA writes the stochastic model-predictive objective~\cite{vjepa2026}, and a flow-matching predictor has been combined with CEM on LeWorldModel using one generated sample per candidate~\cite{flowjepa2026}.
+What is missing, to our knowledge, is a controlled comparison of what a planner needs, beyond a stochastic predictor, to profit from it: how many particles, how to rank candidates with them, and whether the open-loop plan that CEM optimises is the right object when the agent replans with feedback every step.
+This paper provides such a comparison on a benchmark with a known reference.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+\item A stochastic hazard-navigation benchmark with a true-simulator reference planner, an exemplar-based failure detector that works in latent space, and a protocol with confidence intervals (Section~\ref{sec:setting}).
+\item A controlled comparison of deterministic, Gaussian, energy-score and ensemble predictors under identical planners (Section~\ref{sec:exp}). A distributional predictor with particle-averaged cost raises success by \esolSuccDiff{} points and cuts falls by a factor of about three relative to the deterministic planner; an ensemble of deterministic predictors does not help.
+\item Two components, both classical, whose effect in this setting we measure and explain: common random numbers shared across candidates and chained across replans (Section~\ref{sec:crn}), and a feedback-parameterised CEM (Section~\ref{sec:fb}). Their combination closes most of the gap to the simulator-based planner at 12.5\,\% extra compute.
+\item Elementary theory that explains each effect, verified numerically (Section~\ref{sec:theorysummary}, Appendix~\ref{sec:theory}).
+\item A set of negative results (Section~\ref{sec:negative}) that save others the same experiments: risk-averse scoring, empirical-Bayes shrinkage, racing, noise-space importance sampling, failure-rate control, spread recalibration and online fine-tuning did not improve on plain expected-cost planning in our setting.
+\end{enumerate}
+
+\paragraph{What we do not claim.}
+Common random numbers, feedback policies inside model-predictive control, and energy-score training all have long histories (Section~\ref{sec:related}); we do not claim them as new.
+We claim a measurement of how much each matters for planning with stochastic decoder-free latent predictors, the explanation, and the negative results.
+Our experiments are small-scale (a two-dimensional point agent, a frozen identity encoder, CPU); Section~\ref{sec:limits} states what this does and does not support.
+
+% =====================================================================================================
+\input{related}
+
+% =====================================================================================================
+\section{Problem setting and benchmark}\label{sec:setting}
+
+\paragraph{Planning problem.}
+An agent with state $s_t$ acts with $a_t$; the world is stochastic.
+A latent world model consists of an encoder $\phi$ and a predictor $z_{t+1}=f(z_t,a_t,u_t)$ with noise $u_t\sim\mathcal N(0,I)$ (a deterministic predictor ignores $u_t$).
+Given the encoded current observation $z_0=\phi(o_0)$ and a goal embedding $z_g=\phi(o_g)$, a planner chooses an action sequence $a_{0:H-1}$ by minimising the expected planning cost
+\begin{equation}\label{eq:cost}
+J(a)=\mathbb E_u\Big[\tfrac1{s_0}\Big(\|z_H-z_g\|^2+\tfrac1H\textstyle\sum_{t=1}^{H}\|z_t-z_g\|^2\Big)+\kappa\,\mathbf 1\{\text{failure}\}\Big],
+\end{equation}
+estimated with $M$ noise particles per candidate; $s_0$ is the median squared start--goal latent distance (a normalisation) and $\kappa=3$.
+The planner executes the first action and replans at every step.
+
+\paragraph{Failure detection in latent space.}
+The failure event is specified by exemplar frames, in the same way the goal is specified by an image.
+We encode a labelled sample of failure frames, take their mean embedding as an anchor, and call a latent state a failure if its squared distance to the anchor is below a threshold chosen to maximise accuracy on labelled data (0.999 for the main model).
+The same detector and the same $\kappa$ are used for every planner.
+
+\paragraph{Benchmark.}
+A point agent moves in the unit square, $p_{t+1}=\mathrm{clip}(p_t+0.05\,a_t+w_t e_y)$ with $a_t\in[-1,1]^2$ and wind $w_t=\pm w$ with equal probability.
+An absorbing pit occupies $[0.25,0.75]\times[0,0.30]$; start and goal lie on opposite sides at heights $y\in[0.34,0.46]$ and the straight path crosses the edge of the pit.
+The main variant uses $w=0.09$; because $w$ exceeds the agent's own authority (0.05 per step) the agent cannot cancel the wind and must keep a margin.
+An episode ends with success (distance to goal below 0.06), fall (entering the pit), or timeout (120 steps).
+Episodes restart on termination; 16 environments run in parallel.
+Planning settings are $N=32$ candidates, $M=8$ particles, horizon $H=10$, three CEM iterations, unless stated.
+A reference planner that uses the true simulator as its model (large budget: $N=64$, $M=12$, $H=12$) is reported as an upper bound.
+
+\paragraph{World models.}
+The encoder is a frozen identity map on $(2x-1,2y-1,f)$, where $f$ marks a fallen state, so the latent metric is faithful by construction.
+We freeze it because encoders learned end-to-end with the SIGReg regulariser~\cite{maes2026lewm,balestriero2025lejepa} produced latent distances that correlate poorly with true distance at our scale (Spearman 0.44--0.76 against 1.00 for the frozen map, Section~\ref{sec:negative}); this confound would hide the effect we want to study.
+The predictors are MLPs ($3\times512$, LayerNorm) trained for 8\,000 steps on $3\times10^5$ transitions with 25\,\% of the data collected in a band next to the pit.
+We compare: (i) \emph{deterministic} (mean-squared loss, mean rollout, as in LeWorldModel); (ii) \emph{ensemble} of three deterministic predictors, one member per particle (epistemic spread only); (iii) \emph{Gaussian} head with diagonal covariance (negative log-likelihood); (iv) \emph{energy-score} predictor with an 8-dimensional noise input, trained with the unbiased energy score on $8$ samples per transition.
+Three independent model seeds are trained per kind.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figs/benchmark}
+\caption{The benchmark. Ten episodes planned with the true simulator, once with a deterministic (mean) rollout and once with particle-averaged cost. Orange paths end in the pit (cross); blue paths reach the goal side. The mean rollout sees no difference between hugging the pit edge and keeping a margin.}
+\label{fig:benchmark}
+\end{figure}
+
+\paragraph{Protocol and statistics.}
+All planner comparisons in Section~\ref{sec:exp} use the same environment stream (evaluation seed 211), three model seeds and 450 steps per run, which gives 290--400 episodes per planner.
+Intervals are 95\,\% bootstrap (or Wilson) intervals over episodes; episodes within a run are not exactly independent, so the intervals are somewhat optimistic.
+Differences below about 0.06 in a rate cannot be resolved at this sample size and we do not interpret them.
+
+% =====================================================================================================
+\section{Planning with stochastic predictors}\label{sec:methods}
+
+\subsection{Particle-based CEM}\label{sec:pcem}
+The baseline planner is standard CEM over action sequences with $M$ particles per candidate: sample $N$ sequences from a diagonal Gaussian, roll each of them out $M$ times with independent noise, score by the particle mean of~\eqref{eq:cost}, refit the Gaussian to the best 10\,\%, and repeat.
+
+\subsection{Coupled noise}\label{sec:crn}
+With independent noise, each candidate is scored on its own $M$ draws.
+A candidate that passes close to the hazard has a rare, expensive tail; with few particles the tail is often not drawn, and selecting the minimum over candidates then favours exactly the candidates whose tail was missed (Section~\ref{sec:theorysummary}).
+Common random numbers (CRN) draw one noise tensor and use it for every candidate, so that the noise error cancels in the comparison between candidates~\cite{glasserman1992crn}.
+We use two variants: \emph{CRN} (one tensor per planning call, redrawn at every CEM iteration) and \emph{chained CRN}, where the tensor of the previous replan is shifted by one step and mixed with fresh noise, $u\leftarrow\sqrt{1-r^2}\,u_{\mathrm{old}}+r\,\varepsilon$ with $r=0.3$, so that consecutive replans see consistent scenarios.
+Antithetic pairs and scrambled Sobol sequences were also tested and added little once the noise was shared (Section~\ref{sec:exp}).
+
+\subsection{Feedback-parameterised CEM}\label{sec:fb}
+CEM optimises an open-loop sequence against random noise, but the agent will replan with feedback after one step.
+We parameterise each candidate as nominal actions plus a diagonal feedback law on the deviation of the sampled latent state from the noise-free rollout of the same predictor,
+\begin{equation}\label{eq:fb}
+a_t=\mathrm{clip}\big(a^{\mathrm{nom}}_t+K_t\,(z_t-\bar z_t)_{xy}\big),\qquad \bar z_{t+1}=f(\bar z_t,a^{\mathrm{nom}}_t,0),
+\end{equation}
+with one gain per axis and time step, $K_t\in[-k_{\max},0]$, and CEM samples and refits $(a^{\mathrm{nom}},K)$ jointly.
+Only $a^{\mathrm{nom}}_0$ is executed, since the deviation is zero at $t=0$.
+The form is that of tube MPC and affine disturbance feedback; what is specific to the present setting is that $\bar z$ exists because the predictor is stochastic and decoder-free.
+The overhead is one extra predictor evaluation per candidate and step, i.e.\ $1/M$ of the particle cost (12.5\,\% for $M=8$).
+
+% =====================================================================================================
+\section{Why the effects occur}\label{sec:theorysummary}
+
+Appendix~\ref{sec:theory} states and proves each result and lists the numerical check that accompanies it.
+We summarise the three that explain the experiments.
+Our results are elementary; they are meant to explain, not to be deep, and ``new'' in the appendix means new in this form for the planning setting.
+
+\paragraph{Mean-embedding planning ignores the spread.}
+For the squared-distance cost, $\mathbb E\|Z-g\|^2=\|\mu-g\|^2+\operatorname{tr}\Sigma$, and a mean-squared-error predictor converges to $\mu$.
+The regret of the deterministic planner for the expected cost equals the difference of the noise premiums $\operatorname{tr}\Sigma$ at its choice and at the optimum, and is at most their spread (Theorem~\ref{thm:regret}); it is tight.
+It vanishes if the covariance does not depend on the action, which is the case treated by earlier theory~\cite{vjepa2026}; the benchmark here has action-dependent covariance because the noise matters only near the hazard.
+
+\paragraph{Selection amplifies tail blindness.}
+Let $N_r$ risky candidates have failure probability $p$ and be cheaper than a safe candidate when no failure is observed.
+With $M$ particles per candidate, the planner selects a risky candidate with probability
+\begin{equation}
+1-\big(1-F_{\mathrm{Bin}}(k^*;M,p)\big)^{N_r},\qquad k^*=\lfloor M(c_s-c_r)/\kappa\rfloor,
+\end{equation}
+which increases to one with $N_r$ (Theorem~\ref{thm:select}, Figure~\ref{fig:tail}).
+Re-evaluating the top candidates on fresh samples removes the selection bias for the final choice (Theorem~\ref{thm:verify}), and, because every shared draw benefits all candidates alike, coupling the noise removes it from the comparison altogether (variance of a cost difference, Proposition~\ref{prop:noisemap}).
+A monotone shrinkage of the scores (empirical Bayes) cannot change the argmin when all candidates use the same $M$ (Proposition~\ref{prop:shrink}), which is consistent with its absence of effect in Section~\ref{sec:negative}.
+
+\paragraph{Open-loop plans are strictly worse than closed-loop plans.}
+With an absorbing boundary and noise, the best open-loop plan is strictly worse than the best closed-loop plan for every horizon $H\ge2$ (Theorem~\ref{thm:barrier}), and in the linear-quadratic case the open-loop value is $H$ times the closed-loop value (Theorem~\ref{thm:lqg}).
+We found that feedback does \emph{not} bound the cumulative probability of reaching the boundary (Remark~\ref{rem:firstpassage}); the benefit in Section~\ref{sec:exp} is faster progress, not safety.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.55\linewidth]{figs/tail}
+\caption{Probability that the planner selects a risky candidate as a function of the number of risky candidates, for different particle counts ($p=0.1$, penalty $\kappa=3$). Lines: Theorem~\ref{thm:select}; dots: simulation.}
+\label{fig:tail}
+\end{figure}
+
+% =====================================================================================================
+\section{Experiments}\label{sec:exp}
+
+\subsection{Predictors and planner components}\label{sec:main}
+Table~\ref{tab:main} and Figure~\ref{fig:outcomes} give the main comparison under one protocol.
+\begin{table}[t]
+\centering\footnotesize
+\input{tables/main}
+\caption{Planners on the benchmark (3 model seeds, same environment stream). Intervals: 95\,\% (Wilson for the first three rows, bootstrap-equivalent for the rest). ``Steps'' is the median number of steps to reach the goal. Reference: the planner that uses the true simulator reaches the success, fall and timeout rates given in Table~\ref{tab:oracle}.}
+\label{tab:main}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figs/outcomes}
+\caption{Episode outcomes per planner (same data as Table~\ref{tab:main}).}
+\label{fig:outcomes}
+\end{figure}
+
+\begin{table}[t]
+\centering\footnotesize
+\input{tables/oracle}
+\caption{Reference planners that use the true simulator (upper bound), at two compute settings and two wind amplitudes.}
+\label{tab:oracle}
+\end{table}
+
+\paragraph{Findings.}
+\emph{(i) A distributional predictor is the main gain.} Moving from the deterministic predictor (success \detSucc, fall \detFall) to the energy-score predictor with particle-averaged cost (\esolSucc, \esolFall) changes the outcome more than any later component. The Gaussian head is intermediate (\gaussSucc, \gaussFall) and the three-member deterministic ensemble gives no benefit (\enstSucc, \enstFall); the energy-score and Gaussian rows differ by less than we can resolve.
+\emph{(ii) Coupled noise removes falls.} Chained CRN lowers the fall rate from \esolFall{} to \escrnFall{} without extra forward passes.
+\emph{(iii) Feedback removes timeouts.} Feedback gains lower the timeout rate from \esolTime{} to \esfbTime{} and raise success to \esfbSucc, at 12.5\,\% extra compute.
+\emph{(iv) The two are complementary.} Combined, success is \esfbcrnSucc, fall \esfbcrnFall, timeout \esfbcrnTime. The combination is not significantly better than the better component on any single metric, but it is not worse than either.
+
+\subsection{Sample efficiency}\label{sec:sweep}
+Figure~\ref{fig:sweep} and Table~\ref{tab:sweep} vary the number of particles per candidate.
+With independent noise the success rate does not improve monotonically with $M$ in our runs; with coupled noise and feedback, $M=4$ already exceeds the baseline at $M=8$ and $M=16$ in success, using 3.2 times fewer predictor evaluations than the baseline at $M=16$.
+These sweeps use one or two model seeds and about 100--250 episodes per cell, so they are indicative only.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figs/sweep}
+\caption{Effect of the number of particles per candidate. $M=4$ and $M=8$ pool two model seeds; $M=16$ (hollow markers) uses one model seed.}
+\label{fig:sweep}
+\end{figure}
+
+\begin{table}[t]
+\centering\footnotesize
+\input{tables/sweep}
+\caption{Success/fall/timeout (episodes) by particle count, same data as Figure~\ref{fig:sweep}.}
+\label{tab:sweep}
+\end{table}
+
+\subsection{Distribution shift}\label{sec:shift}
+We raise the wind amplitude from 0.09 to 0.13 after 200 steps without retraining (Table~\ref{tab:shift}); the true-simulator planner then achieves a success rate of 0.774 and a fall rate of 0.068 (Table~\ref{tab:oracle}).
+All learned planners degrade; the distributional predictor degrades much less than the deterministic one, but none of the adaptation schemes we tried closes the gap (Section~\ref{sec:negative}).
+
+\begin{table}[t]
+\centering\footnotesize
+\input{tables/shift}
+\caption{Wind shift from 0.09 to 0.13 at step 200 (models not retrained). Rows below the energy-score planner are variants of it. Each row pools three model seeds; episode counts are small, so differences below about 0.06 are not resolved.}
+\label{tab:shift}
+\end{table}
+
+% =====================================================================================================
+\section{Negative results}\label{sec:negative}
+
+The following were tried on the same benchmark and did not improve on plain expected-cost planning with the energy-score predictor; all numbers come from the files in the repository (\texttt{results/FINDINGS\_stochastic.md}).
+\begin{itemize}
+\item \emph{Risk-averse scoring.} $\mathrm{CVaR}$ mixed into the score (weights 0.5 and 1.0) lowered neither falls nor raised success, and increased timeouts (0.24 and 0.30 against 0.09). A comparison of expected and CVaR planning over sampled futures with no gain has also been reported for a probabilistic JEPA~\cite{djepa2026}.
+\item \emph{Empirical-Bayes shrinkage and racing.} Shrinking candidate scores towards the pool mean and allocating particles by successive halving did not raise success; shrinkage with equal $M$ cannot change the ranking (Proposition~\ref{prop:shrink}).
+\item \emph{Noise-space importance sampling.} A mean-shifted Gaussian proposal (gradient or cross-entropy direction) for estimating failure probabilities had higher error than plain Monte Carlo for the gradient shift ($0.21$ to $4.3$ against $0.10$ RMSE) in the 80-dimensional noise space of a ten-step rollout. Importance sampling in noise space for collision probabilities is classical in motion planning~\cite{janson2015mcmp,schmerling2017adaptive}.
+\item \emph{Failure-rate control.} An online controller adapting the CVaR weight to hold the observed fall rate at 0.05 saturated at weight 0.92 after the wind shift and left the fall rate at 0.22: when the model is wrong, a risk measure over the wrong distribution cannot restore safety.
+\item \emph{Spread recalibration.} Online recalibration of the predictive spread by energy-score gradient descent identified the correct scale (1.37 against the true 1.44 for a scalar; 1.35 for the $y$ component) but did not reduce falls, and setting the oracle scale made them worse.
+\item \emph{Online fine-tuning.} Fine-tuning the predictor with its own loss (mean-squared, Gaussian likelihood, energy score) degraded performance before the shift and did not help after it; a drift-gated, replay-anchored, last-layer variant fired correctly 13 to 31 steps after the shift and never before, but also did not reduce falls.
+\item \emph{Multi-step training.} A trajectory-level energy score over 10-step windows reduced the energy distance between imagined and true 10-step latent distributions by about five times, but gave no planning gain distinguishable from noise (about 130 episodes per arm).
+\item \emph{Learned encoders.} At our scale, SIGReg-regularised encoders (pixel and state inputs, latent sizes 4--64) gave squared latent distances with Spearman correlation 0.44--0.76 to true goal distance, against 1.00 for the frozen identity map; planners built on them did not reach the goal.
+\end{itemize}
+
+% =====================================================================================================
+\section{Planning budget and the objective on a public benchmark}\label{sec:lewm}
+To check that our setting does not hide a problem with the public checkpoints, we ran the released LeWorldModel checkpoint on its TwoRoom task with our instrumentation.
+The released model reproduces 86\,\% success (50 episodes, goal offset 25).
+At larger goal offsets success saturates already at about 100 candidates and does not decrease with more candidates (offset 50: 46, 54, 54, 52\,\% for $N=30,100,300,1000$; offset 100: 10, 12, 12\,\% for $N=30,100,300$), and the true progress per executed chunk at offset 100 is about zero for all $N$.
+The limiting factor there is the planning objective rather than the search, in agreement with recent analyses~\cite{objective2026,anchored2026}.
+We therefore did not pursue planning-budget control further.
+These runs use one seed and 50 episodes each and are reported for completeness.
+
+% =====================================================================================================
+\section{Limitations}\label{sec:limits}
+\begin{itemize}
+\item The benchmark is a two-dimensional point agent with a frozen identity encoder. Absolute numbers cannot be compared with image-based benchmarks, and we do not know how the effects scale to learned high-dimensional encoders, where the latent metric itself is a problem.
+\item Compute was CPU-only: three model seeds, a single evaluation stream, and 290--400 episodes per planner. Intervals treat episodes as independent. Differences below about 0.06 are not resolved.
+\item The feedback result is unstable on one measure. On the true simulator, feedback raised success and removed timeouts but increased falls; on the learned model the fall rate changed by an amount within noise. We interpret the benefit of feedback as faster progress, not safety.
+\item The components (coupled noise, nominal-plus-feedback plans, energy-score training) are classical or have recent precedents, notably tube and affine-feedback MPC, CEM over closed-loop parameterisations in learned models, and a concurrent study of open-loop versus feedback planning in a learned belief model~\cite{huh2026feedback}. Our contribution is the measurement and explanation in the decoder-free stochastic JEPA setting, not the components.
+\item The theory covers simple models (Gaussian noise, one absorbing boundary, linear-quadratic dynamics). It explains the direction of the effects, not their size on the benchmark.
+\item Adaptation to distribution shift was not solved; the negative results above are the best evidence we have of what does not work.
+\end{itemize}
+
+% =====================================================================================================
+\section{Conclusion}\label{sec:conclusion}
+For planning with decoder-free latent world models under stochastic dynamics, three things mattered on our benchmark: a predictor that represents the outcome distribution, noise shared across candidates and replans, and plans that include feedback.
+Each is simple, none is new on its own, and together they bring a particle-based planner with eight particles per candidate close to a planner that uses the true simulator.
+Risk-averse scoring, shrinkage, racing, importance sampling and several adaptation schemes did not help.
+The open questions are whether these findings survive learned high-dimensional encoders and standard image-based tasks, and how to adapt a stochastic world model to a shift in its noise.
+
+\section*{Data and code availability}
+Code, results and the scripts that generate every table and figure are in the repository \url{https://github.com/vinhqdang/world_models}.
+
+\section*{Declaration of competing interest}
+The author declares no competing interests.
+
+\appendix
+\section{Theory}\label{app:theory}
+\input{theory}
+
+\bibliographystyle{elsarticle-num}
+\bibliography{refs,theory_refs}
+\end{document}

@@ -1,0 +1,14 @@
+\begin{tabular}{lrcc|rccc}
+\toprule
+ & \multicolumn{3}{c}{Before shift} & \multicolumn{4}{c}{After shift} \\
+Planner & Eps & Succ. & Fall & Eps & Succ. & Fall & Timeout \\
+\midrule
+Deterministic predictor, mean rollout & 328 & 0.668 & 0.332 & 631 & 0.399 & 0.601 & 0.000 \\
+Energy-score predictor, particles & 116 & 0.828 & 0.086 & 230 & 0.709 & 0.200 & 0.091 \\
+\quad CVaR$_{0.5}$ scoring & 90 & 0.678 & 0.067 & 218 & 0.656 & 0.216 & 0.128 \\
+\quad failure-rate controller (target 0.05) & 99 & 0.768 & 0.081 & 218 & 0.615 & 0.220 & 0.165 \\
+\quad scalar spread recalibration (online) & 107 & 0.822 & 0.047 & 233 & 0.665 & 0.240 & 0.094 \\
+\quad per-dimension spread recalibration & 110 & 0.836 & 0.045 & 218 & 0.606 & 0.197 & 0.197 \\
+\quad online fine-tuning of the predictor & 145 & 0.717 & 0.234 & 209 & 0.550 & 0.263 & 0.187 \\
+\bottomrule
+\end{tabular}

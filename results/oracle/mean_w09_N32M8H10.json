@@ -1,0 +1,1 @@
+{"args": {"wind": 0.09, "planner": "mean", "N": 32, "M": 8, "H": 10, "iters": 3, "E": 64, "steps": 450, "seed": 211, "out": "results/oracle/mean_w09_N32M8H10.json"}, "episodes": 1826, "success": 0.32201533406352684, "fall": 0.6779846659364732, "timeout": 0.0, "median_steps": 26.0, "sec": 2.79438853263855}
