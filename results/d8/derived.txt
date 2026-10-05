@@ -1,0 +1,9 @@
+wall seconds per env step (all runs, CPU, shared machine, 2 concurrent jobs):
+  ol32: 1.170  (3150 steps)
+  ol36: 1.283  (3150 steps)
+  fbs32: 1.332  (2700 steps)
+  fbs32_lam05: 1.306  (600 steps)
+  fbs32_M12: 1.895  (450 steps)
+  fbs32_k35: 1.310  (450 steps)
+oracle fbs75 vs ol32: d_fall=+0.0282; part from extra decided episodes (hazard_ol*d_decided)=+0.0099; part from higher hazard (dh*decided_fb)=+0.0183; hazard 0.1129->0.1317
+oracle fbs150 vs ol32: d_fall=+0.0265; part from extra decided episodes (hazard_ol*d_decided)=+0.0115; part from higher hazard (dh*decided_fb)=+0.0150; hazard 0.1129->0.1281
