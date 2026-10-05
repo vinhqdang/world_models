@@ -1,0 +1,26 @@
+### results/n1/oracle   (reference arm: ol_crn3)
+| arm | runs | episodes | success [95% CI] | fall [95% CI] | timeout [95% CI] | median steps to goal |
+|---|---|---|---|---|---|---|
+| ol_crn3 | 6 | 5082 | 0.860 [0.850, 0.869] | 0.070 [0.063, 0.077] | 0.070 [0.063, 0.077] | 44.0 |
+| cf_crn3 | 6 | 5402 | 0.871 [0.862, 0.880] | 0.072 [0.065, 0.079] | 0.057 [0.051, 0.063] | 42.0 |
+
+Differences (arm minus reference): paired = matched (run, slot, episode index), McNemar exact p; unpaired = stratified bootstrap CI
+| arm | outcome | n matched | discordant (arm-only / ref-only) | paired diff | McNemar p | unpaired diff [95% CI] | z-test p |
+|---|---|---|---|---|---|---|---|
+| cf_crn3 | success | 4832 | 447/397 | +0.010 | 0.0916 | +0.011 [-0.002, +0.024] | 0.0909 |
+| cf_crn3 | fall | 4832 | 289/275 | +0.003 | 0.584 | +0.002 [-0.008, +0.012] | 0.67 |
+| cf_crn3 | timeout | 4832 | 173/237 | -0.013 | 0.00183 | -0.013 [-0.023, -0.004] | 0.00482 |
+
+per run (success / fall / timeout, episodes):
+  ol_crn3      e400       0.852 / 0.077 / 0.071  (846)
+  ol_crn3      e401       0.863 / 0.057 / 0.080  (823)
+  ol_crn3      e402       0.857 / 0.072 / 0.071  (833)
+  ol_crn3      e403       0.857 / 0.065 / 0.078  (858)
+  ol_crn3      e404       0.868 / 0.079 / 0.053  (889)
+  ol_crn3      e405       0.861 / 0.070 / 0.070  (833)
+  cf_crn3      e400       0.873 / 0.068 / 0.059  (895)  optB-A=0.089 mean-plan-chosen=0.068
+  cf_crn3      e401       0.874 / 0.054 / 0.072  (870)  optB-A=0.088 mean-plan-chosen=0.066
+  cf_crn3      e402       0.871 / 0.075 / 0.055  (899)  optB-A=0.093 mean-plan-chosen=0.066
+  cf_crn3      e403       0.873 / 0.072 / 0.055  (907)  optB-A=0.091 mean-plan-chosen=0.068
+  cf_crn3      e404       0.872 / 0.083 / 0.045  (929)  optB-A=0.091 mean-plan-chosen=0.067
+  cf_crn3      e405       0.864 / 0.081 / 0.055  (902)  optB-A=0.091 mean-plan-chosen=0.067

@@ -15,6 +15,13 @@ def ci(x, stat=np.mean):
 
 def rank_tables(path='results/n2/rank_main.json', out='results/n2/rank_summary.md'):
     R = json.load(open(path))['results']
+    for extra, nm in [('results/n2/rank_learned.json', 'learned'), ('results/n2/rank_moment.json', 'moment')]:
+        try:
+            RL = json.load(open(extra))['results']
+            for k in R:
+                if k in RL and nm in RL[k]: R[k][nm] = RL[k][nm]
+        except FileNotFoundError:
+            pass
     regimes = sorted({k.split('_', 1)[1] for k in R})
     schemes = [k for k in next(iter(R.values())) if not k.startswith('_')]
     lines = []
@@ -46,6 +53,22 @@ def rank_tables(path='results/n2/rank_main.json', out='results/n2/rank_summary.m
                 lines.append('| ' + ' | '.join(row) + ' |')
     open(out, 'w').write('\n'.join(lines) + '\n')
     print('\n'.join(lines))
+
+
+def cemeval(path='results/n2/cemeval.json', out='results/n2/cemeval_summary.md'):
+    R = json.load(open(path))['results']
+    schemes = list(next(iter(R.values())).keys())
+    lines = ['| scheme | ref cost (mean over scenarios) | ref failure prob | paired cost diff vs crn_anti | paired fail diff vs crn_anti |', '|---|---|---|---|---|']
+    for s_ in schemes:
+        c = np.concatenate([R[m][s_]['cost'] for m in R]); f = np.concatenate([R[m][s_]['fail'] for m in R])
+        cb = np.concatenate([R[m]['crn_anti']['cost'] for m in R]); fb = np.concatenate([R[m]['crn_anti']['fail'] for m in R])
+        a, la, ha = ci(c); b, lb, hb = ci(f); dc = ci(c - cb); df = ci(f - fb)
+        lines.append(f'| {s_} | {a:.3f} [{la:.3f}, {ha:.3f}] | {b:.3f} [{lb:.3f}, {hb:.3f}] | {dc[0]:+.3f} [{dc[1]:+.3f}, {dc[2]:+.3f}] | {df[0]:+.3f} [{df[1]:+.3f}, {df[2]:+.3f}] |')
+    lines.append('\nPer model (mean ref cost):\n')
+    lines.append('| model | ' + ' | '.join(schemes) + ' |'); lines.append('|---|' + '---|' * len(schemes))
+    for m in R:
+        lines.append(f'| {m} | ' + ' | '.join(f'{np.mean(R[m][s_]["cost"]):.3f}' for s_ in schemes) + ' |')
+    open(out, 'w').write('\n'.join(lines) + '\n'); print('\n'.join(lines))
 
 
 def closed_loop(out='results/n2/cl_summary.md'):
@@ -106,5 +129,6 @@ def closed_loop(out='results/n2/cl_summary.md'):
 
 
 if __name__ == '__main__':
-    if 'rank' in sys.argv: rank_tables(*(sys.argv[3:5] if len(sys.argv) > 3 else []))
+    if 'rank' in sys.argv: rank_tables()
     if 'cl' in sys.argv: closed_loop()
+    if 'cem' in sys.argv: cemeval()

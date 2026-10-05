@@ -1,0 +1,46 @@
+### results/n1/oracle   (reference arm: ol_indep)
+| arm | runs | episodes | success [95% CI] | fall [95% CI] | timeout [95% CI] | median steps to goal |
+|---|---|---|---|---|---|---|
+| ol_indep | 6 | 4191 | 0.787 [0.775, 0.799] | 0.105 [0.096, 0.115] | 0.107 [0.098, 0.116] | 57.0 |
+| ol_crn3 | 6 | 5082 | 0.860 [0.850, 0.869] | 0.070 [0.063, 0.077] | 0.070 [0.063, 0.077] | 44.0 |
+| cf_crn3 | 6 | 5402 | 0.871 [0.862, 0.880] | 0.072 [0.065, 0.079] | 0.057 [0.051, 0.063] | 42.0 |
+| cf_indep | 6 | 4536 | 0.833 [0.823, 0.844] | 0.084 [0.076, 0.092] | 0.082 [0.075, 0.090] | 53.0 |
+
+Differences (arm minus reference): paired = matched (run, slot, episode index), McNemar exact p; unpaired = stratified bootstrap CI
+| arm | outcome | n matched | discordant (arm-only / ref-only) | paired diff | McNemar p | unpaired diff [95% CI] | z-test p |
+|---|---|---|---|---|---|---|---|
+| ol_crn3 | success | 4121 | 624/333 | +0.071 | 3.46e-21 | +0.072 [+0.057, +0.088] | 0 |
+| ol_crn3 | fall | 4121 | 221/370 | -0.036 | 9.38e-10 | -0.035 [-0.047, -0.023] | 1.43e-09 |
+| ol_crn3 | timeout | 4121 | 193/335 | -0.034 | 6.71e-10 | -0.037 [-0.048, -0.025] | 3.49e-10 |
+| cf_crn3 | success | 4149 | 645/297 | +0.084 | 2.66e-30 | +0.084 [+0.068, +0.098] | 0 |
+| cf_crn3 | fall | 4149 | 228/373 | -0.035 | 3.6e-09 | -0.033 [-0.045, -0.021] | 9.32e-09 |
+| cf_crn3 | timeout | 4149 | 147/350 | -0.049 | 3.85e-20 | -0.050 [-0.061, -0.039] | 0 |
+| cf_indep | success | 4026 | 535/357 | +0.044 | 2.76e-09 | +0.046 [+0.029, +0.062] | 4.28e-08 |
+| cf_indep | fall | 4026 | 242/325 | -0.021 | 0.000562 | -0.021 [-0.033, -0.009] | 0.000695 |
+| cf_indep | timeout | 4026 | 205/300 | -0.024 | 2.74e-05 | -0.025 [-0.037, -0.012] | 8.09e-05 |
+
+per run (success / fall / timeout, episodes):
+  ol_indep     e400       0.789 / 0.106 / 0.105  (707)
+  ol_indep     e401       0.782 / 0.102 / 0.116  (689)
+  ol_indep     e402       0.803 / 0.101 / 0.095  (692)
+  ol_indep     e403       0.764 / 0.109 / 0.128  (690)
+  ol_indep     e404       0.804 / 0.093 / 0.103  (709)
+  ol_indep     e405       0.781 / 0.122 / 0.097  (704)
+  ol_crn3      e400       0.852 / 0.077 / 0.071  (846)
+  ol_crn3      e401       0.863 / 0.057 / 0.080  (823)
+  ol_crn3      e402       0.857 / 0.072 / 0.071  (833)
+  ol_crn3      e403       0.857 / 0.065 / 0.078  (858)
+  ol_crn3      e404       0.868 / 0.079 / 0.053  (889)
+  ol_crn3      e405       0.861 / 0.070 / 0.070  (833)
+  cf_crn3      e400       0.873 / 0.068 / 0.059  (895)  optB-A=0.089 mean-plan-chosen=0.068
+  cf_crn3      e401       0.874 / 0.054 / 0.072  (870)  optB-A=0.088 mean-plan-chosen=0.066
+  cf_crn3      e402       0.871 / 0.075 / 0.055  (899)  optB-A=0.093 mean-plan-chosen=0.066
+  cf_crn3      e403       0.873 / 0.072 / 0.055  (907)  optB-A=0.091 mean-plan-chosen=0.068
+  cf_crn3      e404       0.872 / 0.083 / 0.045  (929)  optB-A=0.091 mean-plan-chosen=0.067
+  cf_crn3      e405       0.864 / 0.081 / 0.055  (902)  optB-A=0.091 mean-plan-chosen=0.067
+  cf_indep     e400       0.808 / 0.097 / 0.095  (771)  optB-A=0.165 mean-plan-chosen=0.079
+  cf_indep     e401       0.825 / 0.074 / 0.100  (727)  optB-A=0.160 mean-plan-chosen=0.077
+  cf_indep     e402       0.843 / 0.092 / 0.065  (772)  optB-A=0.166 mean-plan-chosen=0.079
+  cf_indep     e403       0.831 / 0.081 / 0.088  (765)  optB-A=0.161 mean-plan-chosen=0.079
+  cf_indep     e404       0.854 / 0.070 / 0.076  (752)  optB-A=0.161 mean-plan-chosen=0.077
+  cf_indep     e405       0.838 / 0.089 / 0.072  (749)  optB-A=0.164 mean-plan-chosen=0.079

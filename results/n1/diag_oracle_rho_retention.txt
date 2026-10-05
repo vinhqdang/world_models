@@ -1,0 +1,6 @@
+rho | held-out meter mean(J_B - J_A) | true in-sample optimism mean(J_fresh(A-winner) - J_A) | residual bias of J_B (J_B - J_fresh) | fraction of optimism retained
+0.0 | 0.1299 | 0.1274 | +0.0025 (se 0.0023) | -0.020
+0.5 | 0.1067 | 0.1274 | -0.0207 (se 0.0026) | 0.163
+0.8 | 0.0799 | 0.1274 | -0.0475 (se 0.0033) | 0.373
+0.95 | 0.0552 | 0.1274 | -0.0722 (se 0.0038) | 0.566
+1.0 | 0.0003 | 0.1274 | -0.1271 (se 0.0050) | 0.997

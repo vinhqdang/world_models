@@ -1,0 +1,20 @@
+### results/n1/learned   (reference arm: ol_crn3)
+| arm | runs | episodes | success [95% CI] | fall [95% CI] | timeout [95% CI] | median steps to goal |
+|---|---|---|---|---|---|---|
+| ol_crn3 | 3 | 339 | 0.847 [0.808, 0.882] | 0.035 [0.018, 0.056] | 0.118 [0.086, 0.153] | 50.0 |
+| cf_crn3 | 3 | 363 | 0.893 [0.860, 0.923] | 0.030 [0.014, 0.050] | 0.077 [0.052, 0.105] | 48.0 |
+
+Differences (arm minus reference): paired = matched (run, slot, episode index), McNemar exact p; unpaired = stratified bootstrap CI
+| arm | outcome | n matched | discordant (arm-only / ref-only) | paired diff | McNemar p | unpaired diff [95% CI] | z-test p |
+|---|---|---|---|---|---|---|---|
+| cf_crn3 | success | 324 | 34/22 | +0.037 | 0.141 | +0.046 [-0.003, +0.095] | 0.0701 |
+| cf_crn3 | fall | 324 | 9/11 | -0.006 | 0.824 | -0.005 [-0.031, +0.022] | 0.705 |
+| cf_crn3 | timeout | 324 | 15/25 | -0.031 | 0.154 | -0.041 [-0.085, +0.002] | 0.0674 |
+
+per run (success / fall / timeout, episodes):
+  ol_crn3      m0_e400    0.868 / 0.018 / 0.114  (114)
+  ol_crn3      m1_e401    0.823 / 0.062 / 0.115  (113)
+  ol_crn3      m2_e402    0.848 / 0.027 / 0.125  (112)
+  cf_crn3      m0_e400    0.898 / 0.023 / 0.078  (128)  optB-A=0.433 mean-plan-chosen=0.173
+  cf_crn3      m1_e401    0.905 / 0.034 / 0.060  (116)  optB-A=0.476 mean-plan-chosen=0.191
+  cf_crn3      m2_e402    0.874 / 0.034 / 0.092  (119)  optB-A=0.439 mean-plan-chosen=0.175

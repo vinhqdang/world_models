@@ -220,6 +220,8 @@ def make_n2_model(name, mem, variant, learned_path=None, **kw):
         vbar = active_direction(mem)
         p = atom_weight(mem, vbar) if name.endswith('_fit') else 0.5
         return AtomLatentModel(mem, variant, vbar, K=K, p_plus=p, **kw)
+    if name == 'moment':
+        return MomentLatentModel(mem, variant, active_direction(mem), **kw)
     if name.startswith('ut'):                                   # unscented / Gauss-Hermite-3 nodes along vbar (negative control)
         K = int(name[2:]) if len(name) > 2 else 3
         r3 = math.sqrt(3.0)
@@ -228,8 +230,67 @@ def make_n2_model(name, mem, variant, learned_path=None, **kw):
         vbar = active_direction(mem)
         U = None
         if name == 'learned':
-            d = torch.load(learned_path)
+            d = torch.load(learned_path, weights_only=False)
             xi = d['xi'] - (d['xi'] * vbar).sum(-1, keepdim=True) * vbar
             U = d['q'][..., None] * vbar + xi
         return CoupledLatentModel(mem, variant, noise=N2Noise(name, vbar, U_learned=U), **kw)
     return None
+
+
+class MomentLatentModel(LatentModel):
+    """Gaussian moment-space planning baseline: the belief is N(mu, Sigma) over the latent state, propagated by the unscented
+    transform over the joint (z, t) with t ~ N(0,1) the coordinate of the noise along vbar (the other noise coordinates are 0).
+    Costs are evaluated in closed form from the moments: E||Z - g||^2 = ||mu - g||^2 + tr Sigma (stage and terminal), and the per-step
+    anchor-hit probability by a normal approximation of the quadratic form ||Z - z_fail||^2 (mean m, variance v), accumulated by
+    the noisy-or rule.  With lam = 0 and n = D + 1 = 4 there are 2n = 8 sigma points per step (= the M = 8 budget)."""
+
+    def __init__(self, jepa, variant, vbar, lam=0.0, **kw):
+        super().__init__(jepa, variant, **kw)
+        self.vbar, self.lam = vbar, lam
+
+    def _rollout(self, z0, acts, M, gen, goal=None):
+        E, N, H, A = acts.shape
+        D = z0.shape[-1]; n = D + 1; lam = self.lam; dev = z0.device
+        vb = self.vbar.to(dev)
+        mu = z0[:, None, :].expand(E, N, D).contiguous()
+        Sig = torch.zeros(E, N, D, D, device=dev)
+        w0 = lam / (n + lam); wi = 1.0 / (2 * (n + lam)); s = math.sqrt(n + lam)
+        eye = torch.eye(D, device=dev)
+        acc = torch.zeros(E, N, device=dev); fl = torch.zeros(E, N, device=dev)
+        g = goal[:, None, :]
+        for t in range(H):
+            Lc = torch.linalg.cholesky(Sig + 1e-6 * eye)                                   # (E,N,D,D)
+            pts = [mu[:, :, None, :]]; tz = [torch.zeros(E, N, 1, device=dev)]
+            for i in range(D):
+                col = Lc[..., :, i]
+                pts += [(mu + s * col)[:, :, None, :], (mu - s * col)[:, :, None, :]]; tz += [torch.zeros(E, N, 2, device=dev)][:1]
+            zp = torch.cat(pts, 2)                                                            # (E,N,1+2D,D)
+            tt = torch.zeros(E, N, 1 + 2 * D, device=dev)
+            zp = torch.cat([zp, mu[:, :, None, :].expand(E, N, 2, D)], 2)                     # noise-axis points: z at the mean, t = +-s
+            tt = torch.cat([tt, torch.full((E, N, 1), s, device=dev), torch.full((E, N, 1), -s, device=dev)], 2)
+            wts = torch.tensor([w0] + [wi] * (2 * D + 2), device=dev)
+            keep = wts > 0
+            zp, tt, wts = zp[:, :, keep], tt[:, :, keep], wts[keep]
+            K = zp.shape[2]
+            a = acts[:, :, t, None, :].expand(E, N, K, A)
+            u = tt[..., None] * vb
+            out = self.m.pred(zp, a, u)[0]                                                    # (E,N,K,D)
+            mu = (wts[None, None, :, None] * out).sum(2)
+            dv = out - mu[:, :, None, :]
+            Sig = (wts[None, None, :, None, None] * dv[..., :, None] * dv[..., None, :]).sum(2)
+            trS = torch.diagonal(Sig, dim1=-2, dim2=-1).sum(-1)
+            if self.stage_w > 0:
+                acc = acc + (((mu - g) ** 2).sum(-1) + trS) / H
+            if self.anchor is not None:
+                d = mu - self.anchor.z
+                m_ = (d ** 2).sum(-1) + trS
+                v_ = 2 * (Sig * Sig).sum((-1, -2)) + 4 * (d[..., None, :] @ Sig @ d[..., :, None])[..., 0, 0]
+                p = 0.5 * (1 + torch.erf((self.anchor.tau - m_) / (torch.sqrt(v_ + 1e-4) * math.sqrt(2.0))))
+                fl = fl + (1 - fl) * p
+        trS = torch.diagonal(Sig, dim1=-2, dim2=-1).sum(-1)
+        return torch.cat([mu, acc[..., None], fl[..., None], trS[..., None]], -1)[:, :, None, :]   # (E,N,1,D+3)
+
+    def cost(self, feat, zg):
+        mu, acc, fl, trS = feat[..., :-3], feat[..., -3], feat[..., -2], feat[..., -1]
+        c = ((mu - zg[:, None, None, :]) ** 2).sum(-1) + trS + self.stage_w * acc
+        return c / self.scale + (self.kappa * fl if self.anchor is not None else 0.0)

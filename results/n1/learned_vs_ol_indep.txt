@@ -1,0 +1,27 @@
+### results/n1/learned   (reference arm: ol_indep)
+| arm | runs | episodes | success [95% CI] | fall [95% CI] | timeout [95% CI] | median steps to goal |
+|---|---|---|---|---|---|---|
+| ol_indep | 3 | 325 | 0.760 [0.714, 0.806] | 0.086 [0.058, 0.117] | 0.154 [0.117, 0.194] | 58.0 |
+| ol_crn3 | 3 | 339 | 0.847 [0.808, 0.882] | 0.035 [0.018, 0.056] | 0.118 [0.086, 0.153] | 50.0 |
+| cf_crn3 | 3 | 363 | 0.893 [0.860, 0.923] | 0.030 [0.014, 0.050] | 0.077 [0.052, 0.105] | 48.0 |
+
+Differences (arm minus reference): paired = matched (run, slot, episode index), McNemar exact p; unpaired = stratified bootstrap CI
+| arm | outcome | n matched | discordant (arm-only / ref-only) | paired diff | McNemar p | unpaired diff [95% CI] | z-test p |
+|---|---|---|---|---|---|---|---|
+| ol_crn3 | success | 309 | 49/20 | +0.094 | 0.000636 | +0.087 [+0.029, +0.144] | 0.00493 |
+| ol_crn3 | fall | 309 | 8/23 | -0.049 | 0.0107 | -0.051 [-0.088, -0.014] | 0.006 |
+| ol_crn3 | timeout | 309 | 19/33 | -0.045 | 0.0704 | -0.036 [-0.088, +0.017] | 0.177 |
+| cf_crn3 | success | 312 | 60/19 | +0.131 | 4.19e-06 | +0.133 [+0.077, +0.187] | 3.83e-06 |
+| cf_crn3 | fall | 312 | 9/26 | -0.054 | 0.00599 | -0.056 [-0.091, -0.021] | 0.00156 |
+| cf_crn3 | timeout | 312 | 15/39 | -0.077 | 0.0015 | -0.077 [-0.125, -0.031] | 0.00153 |
+
+per run (success / fall / timeout, episodes):
+  ol_indep     m0_e400    0.783 / 0.104 / 0.113  (115)
+  ol_indep     m1_e401    0.786 / 0.031 / 0.184  (98)
+  ol_indep     m2_e402    0.714 / 0.116 / 0.170  (112)
+  ol_crn3      m0_e400    0.868 / 0.018 / 0.114  (114)
+  ol_crn3      m1_e401    0.823 / 0.062 / 0.115  (113)
+  ol_crn3      m2_e402    0.848 / 0.027 / 0.125  (112)
+  cf_crn3      m0_e400    0.898 / 0.023 / 0.078  (128)  optB-A=0.433 mean-plan-chosen=0.173
+  cf_crn3      m1_e401    0.905 / 0.034 / 0.060  (116)  optB-A=0.476 mean-plan-chosen=0.191
+  cf_crn3      m2_e402    0.874 / 0.034 / 0.092  (119)  optB-A=0.439 mean-plan-chosen=0.175

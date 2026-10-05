@@ -1,0 +1,26 @@
+### results/n1/oracle   (reference arm: ol_indep)
+| arm | runs | episodes | success [95% CI] | fall [95% CI] | timeout [95% CI] | median steps to goal |
+|---|---|---|---|---|---|---|
+| ol_indep | 6 | 4191 | 0.787 [0.775, 0.799] | 0.105 [0.096, 0.115] | 0.107 [0.098, 0.116] | 57.0 |
+| cf_indep | 6 | 4536 | 0.833 [0.822, 0.844] | 0.084 [0.076, 0.092] | 0.082 [0.075, 0.091] | 53.0 |
+
+Differences (arm minus reference): paired = matched (run, slot, episode index), McNemar exact p; unpaired = stratified bootstrap CI
+| arm | outcome | n matched | discordant (arm-only / ref-only) | paired diff | McNemar p | unpaired diff [95% CI] | z-test p |
+|---|---|---|---|---|---|---|---|
+| cf_indep | success | 4026 | 535/357 | +0.044 | 2.76e-09 | +0.046 [+0.029, +0.062] | 4.28e-08 |
+| cf_indep | fall | 4026 | 242/325 | -0.021 | 0.000562 | -0.021 [-0.034, -0.009] | 0.000695 |
+| cf_indep | timeout | 4026 | 205/300 | -0.024 | 2.74e-05 | -0.025 [-0.037, -0.012] | 8.09e-05 |
+
+per run (success / fall / timeout, episodes):
+  ol_indep     e400       0.789 / 0.106 / 0.105  (707)
+  ol_indep     e401       0.782 / 0.102 / 0.116  (689)
+  ol_indep     e402       0.803 / 0.101 / 0.095  (692)
+  ol_indep     e403       0.764 / 0.109 / 0.128  (690)
+  ol_indep     e404       0.804 / 0.093 / 0.103  (709)
+  ol_indep     e405       0.781 / 0.122 / 0.097  (704)
+  cf_indep     e400       0.808 / 0.097 / 0.095  (771)  optB-A=0.165 mean-plan-chosen=0.079
+  cf_indep     e401       0.825 / 0.074 / 0.100  (727)  optB-A=0.160 mean-plan-chosen=0.077
+  cf_indep     e402       0.843 / 0.092 / 0.065  (772)  optB-A=0.166 mean-plan-chosen=0.079
+  cf_indep     e403       0.831 / 0.081 / 0.088  (765)  optB-A=0.161 mean-plan-chosen=0.079
+  cf_indep     e404       0.854 / 0.070 / 0.076  (752)  optB-A=0.161 mean-plan-chosen=0.077
+  cf_indep     e405       0.838 / 0.089 / 0.072  (749)  optB-A=0.164 mean-plan-chosen=0.079
