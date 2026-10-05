@@ -1,0 +1,6 @@
+fbs32_lam05 0 200 200 --fb 1 --kmode step --kmax 7.5 --N 32 --lam 0.5
+fbs32_lam05 1 201 200 --fb 1 --kmode step --kmax 7.5 --N 32 --lam 0.5
+fbs32_lam05 2 202 200 --fb 1 --kmode step --kmax 7.5 --N 32 --lam 0.5
+fbs32_M12 0 200 200 --fb 1 --kmode step --kmax 7.5 --N 32 --M 12
+fbs32_M12 1 201 200 --fb 1 --kmode step --kmax 7.5 --N 32 --M 12
+fbs32_M12 2 202 200 --fb 1 --kmode step --kmax 7.5 --N 32 --M 12

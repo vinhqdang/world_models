@@ -1,0 +1,24 @@
+arm             eps  success [95% CI]       fall [95% CI]          timeout [95% CI]       med steps [CI]     sec/run  rows/step
+ol_indep        288  0.757 [0.708,0.806]    0.101 [0.069,0.139]    0.142 [0.104,0.184]    59.0 [54,65]   528  122880   (model seeds [0, 1, 2])
+ol_crn3         329  0.888 [0.851,0.921]    0.033 [0.015,0.055]    0.079 [0.052,0.109]    51.0 [49,54]   511  122880   (model seeds [0, 1, 2])
+fbstep_indep    377  0.902 [0.873,0.931]    0.069 [0.045,0.095]    0.029 [0.013,0.048]    48.0 [45,50]   604  138240   (model seeds [0, 1, 2])
+fbstep_crn3     398  0.925 [0.897,0.950]    0.043 [0.025,0.065]    0.033 [0.018,0.050]    43.5 [41,46]   586  138240   (model seeds [0, 1, 2])
+
+per model seed (success / fall / timeout / median steps, episodes):
+  ol_indep       m0: eps= 98 success=0.806 fall=0.102 timeout=0.092 med=56.0  (counts {'success': 79, 'fall': 10, 'timeout': 9})
+  ol_indep       m1: eps= 92 success=0.772 fall=0.076 timeout=0.152 med=63.0  (counts {'success': 71, 'fall': 7, 'timeout': 14})
+  ol_indep       m2: eps= 98 success=0.694 fall=0.122 timeout=0.184 med=58.0  (counts {'success': 68, 'fall': 12, 'timeout': 18})
+  ol_crn3        m0: eps=110 success=0.891 fall=0.045 timeout=0.064 med=50.5  (counts {'success': 98, 'fall': 5, 'timeout': 7})
+  ol_crn3        m1: eps=111 success=0.919 fall=0.018 timeout=0.063 med=52.0  (counts {'success': 102, 'fall': 2, 'timeout': 7})
+  ol_crn3        m2: eps=108 success=0.852 fall=0.037 timeout=0.111 med=50.0  (counts {'success': 92, 'fall': 4, 'timeout': 12})
+  fbstep_indep   m0: eps=110 success=0.918 fall=0.018 timeout=0.064 med=52.0  (counts {'success': 101, 'fall': 2, 'timeout': 7})
+  fbstep_indep   m1: eps=124 success=0.944 fall=0.040 timeout=0.016 med=48.0  (counts {'success': 117, 'fall': 5, 'timeout': 2})
+  fbstep_indep   m2: eps=143 success=0.853 fall=0.133 timeout=0.014 med=41.5  (counts {'success': 122, 'fall': 19, 'timeout': 2})
+  fbstep_crn3    m0: eps=116 success=0.845 fall=0.086 timeout=0.069 med=49.0  (counts {'success': 98, 'fall': 10, 'timeout': 8})
+  fbstep_crn3    m1: eps=133 success=0.962 fall=0.008 timeout=0.030 med=44.0  (counts {'success': 128, 'fall': 1, 'timeout': 4})
+  fbstep_crn3    m2: eps=149 success=0.953 fall=0.040 timeout=0.007 med=39.0  (counts {'success': 142, 'fall': 6, 'timeout': 1})
+
+difference vs ol_indep (unpaired episode bootstrap 95% CI):
+  ol_crn3        dsucc=+0.131 [+0.070,+0.191]  dfall=-0.067 [-0.108,-0.027]  dtimeout=-0.063 [-0.113,-0.013]
+  fbstep_indep   dsucc=+0.145 [+0.087,+0.203]  dfall=-0.032 [-0.075,+0.011]  dtimeout=-0.113 [-0.158,-0.070]
+  fbstep_crn3    dsucc=+0.168 [+0.113,+0.224]  dfall=-0.058 [-0.099,-0.018]  dtimeout=-0.110 [-0.154,-0.068]

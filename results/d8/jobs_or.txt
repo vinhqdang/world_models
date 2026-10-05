@@ -1,0 +1,30 @@
+ol32 100 --mode ol --N 32
+ol36 100 --mode ol --N 36
+fbs75 100 --mode fb --kmode step --kmax 7.5 --N 32
+fbs150 100 --mode fb --kmode step --kmax 15 --N 32
+ol32_lam05 100 --mode ol --N 32 --lam 0.5
+fbs75_lam05 100 --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5
+ol32 101 --mode ol --N 32
+ol36 101 --mode ol --N 36
+fbs75 101 --mode fb --kmode step --kmax 7.5 --N 32
+fbs150 101 --mode fb --kmode step --kmax 15 --N 32
+ol32_lam05 101 --mode ol --N 32 --lam 0.5
+fbs75_lam05 101 --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5
+ol32 102 --mode ol --N 32
+ol36 102 --mode ol --N 36
+fbs75 102 --mode fb --kmode step --kmax 7.5 --N 32
+fbs150 102 --mode fb --kmode step --kmax 15 --N 32
+ol32_lam05 102 --mode ol --N 32 --lam 0.5
+fbs75_lam05 102 --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5
+ol32 103 --mode ol --N 32
+ol36 103 --mode ol --N 36
+fbs75 103 --mode fb --kmode step --kmax 7.5 --N 32
+fbs150 103 --mode fb --kmode step --kmax 15 --N 32
+ol32_lam05 103 --mode ol --N 32 --lam 0.5
+fbs75_lam05 103 --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5
+ol32 104 --mode ol --N 32
+ol36 104 --mode ol --N 36
+fbs75 104 --mode fb --kmode step --kmax 7.5 --N 32
+fbs150 104 --mode fb --kmode step --kmax 15 --N 32
+ol32_lam05 104 --mode ol --N 32 --lam 0.5
+fbs75_lam05 104 --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5

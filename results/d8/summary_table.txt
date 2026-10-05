@@ -1,0 +1,30 @@
+Per-arm pooled results (cliff_hi, learned energy-score models seeds 0-2, E=16, H=10, iters=3, 95% CI = stratified episode bootstrap, B=4000)
+arm            runs   eps                success                   fall                timeout    median steps (CI) part-steps/step  sec/run  per-model-seed success
+ol32              6   557    0.761 [0.727,0.795]    0.068 [0.048,0.090]    0.171 [0.140,0.201]     58.0 [54.0,61.0]            7680      528  m0:0.753 m1:0.744 m2:0.785
+ol36              6   567    0.787 [0.751,0.820]    0.081 [0.060,0.104]    0.132 [0.106,0.160]     58.0 [55.0,61.0]            8640      577  m0:0.785 m1:0.795 m2:0.804
+fbs32             6   694    0.890 [0.867,0.912]    0.055 [0.039,0.072]    0.055 [0.039,0.072]     48.0 [46.0,51.0]            8640      599  m0:0.854 m1:0.908 m2:0.922
+
+Comparisons (difference = arm minus baseline; paired = matched (model seed, eval seed, slot, episode idx); McNemar exact p)
+-- ol36 vs ol32: paired episodes n=517; unpaired n=567 vs 557 (common runs, common step window)
+   success  paired diff +0.019 [-0.025,+0.060] McNemar p=0.4191 (discordant 67/57);  unpaired diff +0.025 (0.761 -> 0.787) z-test p=0.3091
+   fall     paired diff +0.015 [-0.012,+0.043] McNemar p=0.3123 (discordant 28/20);  unpaired diff +0.013 (0.068 -> 0.081) z-test p=0.4107
+   timeout  paired diff -0.035 [-0.074,+0.002] McNemar p=0.0918 (discordant 42/60);  unpaired diff -0.038 (0.171 -> 0.132) z-test p=0.0733
+   steps-to-goal (successes) Mann-Whitney p=0.7589
+-- fbs32 vs ol32: paired episodes n=545; unpaired n=694 vs 557 (common runs, common step window)
+   success  paired diff +0.127 [+0.086,+0.167] McNemar p=0.0000 (discordant 100/31);  unpaired diff +0.129 (0.761 -> 0.890) z-test p=0.0000
+   fall     paired diff -0.011 [-0.039,+0.015] McNemar p=0.5044 (discordant 25/31);  unpaired diff -0.013 (0.068 -> 0.055) z-test p=0.3217
+   timeout  paired diff -0.116 [-0.147,-0.084] McNemar p=0.0000 (discordant 12/75);  unpaired diff -0.116 (0.171 -> 0.055) z-test p=0.0000
+   steps-to-goal (successes) Mann-Whitney p=0.0000
+-- fbs32 vs ol36: paired episodes n=554; unpaired n=694 vs 567 (common runs, common step window)
+   success  paired diff +0.103 [+0.067,+0.141] McNemar p=0.0000 (discordant 89/32);  unpaired diff +0.104 (0.787 -> 0.890) z-test p=0.0000
+   fall     paired diff -0.029 [-0.056,+0.000] McNemar p=0.0559 (discordant 23/39);  unpaired diff -0.026 (0.081 -> 0.055) z-test p=0.0617
+   timeout  paired diff -0.074 [-0.105,-0.043] McNemar p=0.0000 (discordant 21/62);  unpaired diff -0.078 (0.132 -> 0.055) z-test p=0.0000
+   steps-to-goal (successes) Mann-Whitney p=0.0000
+
+Robustness: length-bias-free subset (only episodes that started at or before step total_steps-120, so every one finishes inside the window); unpaired two-proportion z tests, bootstrap CI as above
+ol32           eps= 531 success 0.751 [0.716,0.789] fall 0.070 [0.047,0.092] timeout 0.179 [0.147,0.213]
+ol36           eps= 535 success 0.781 [0.744,0.815] fall 0.079 [0.056,0.103] timeout 0.140 [0.112,0.172]
+fbs32          eps= 635 success 0.890 [0.865,0.913] fall 0.050 [0.035,0.068] timeout 0.060 [0.043,0.079]
+   ol36 vs ol32 (n=535 vs 531): success +0.030 (p=0.2487); fall +0.009 (p=0.5823); timeout -0.039 (p=0.0843)
+   fbs32 vs ol32 (n=635 vs 531): success +0.138 (p=0.0000); fall -0.019 (p=0.1645); timeout -0.119 (p=0.0000)
+   fbs32 vs ol36 (n=635 vs 535): success +0.108 (p=0.0000); fall -0.028 (p=0.0491); timeout -0.080 (p=0.0000)

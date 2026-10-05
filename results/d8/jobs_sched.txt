@@ -1,0 +1,43 @@
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s2.pt --seed 202 --total_steps 200 --out results/d8/fbs32_lam05_m2_e202.json --fb 1 --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/fbs32_lam05_m2_e202.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s0.pt --seed 300 --total_steps 150 --out results/d8/ol32_m0_e300.json --N 32 > results/d8/ol32_m0_e300.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s0.pt --seed 300 --total_steps 150 --out results/d8/ol36_m0_e300.json --N 36 > results/d8/ol36_m0_e300.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s1.pt --seed 301 --total_steps 150 --out results/d8/ol32_m1_e301.json --N 32 > results/d8/ol32_m1_e301.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s1.pt --seed 301 --total_steps 150 --out results/d8/ol36_m1_e301.json --N 36 > results/d8/ol36_m1_e301.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s2.pt --seed 302 --total_steps 150 --out results/d8/ol32_m2_e302.json --N 32 > results/d8/ol32_m2_e302.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s2.pt --seed 302 --total_steps 150 --out results/d8/ol36_m2_e302.json --N 36 > results/d8/ol36_m2_e302.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_ol32_e100.json --mode ol --N 32 > results/d8/oracle_ol32_e100.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_ol36_e100.json --mode ol --N 36 > results/d8/oracle_ol36_e100.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_fbs75_e100.json --mode fb --kmode step --kmax 7.5 --N 32 > results/d8/oracle_fbs75_e100.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_fbs150_e100.json --mode fb --kmode step --kmax 15 --N 32 > results/d8/oracle_fbs150_e100.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_ol32_lam05_e100.json --mode ol --N 32 --lam 0.5 > results/d8/oracle_ol32_lam05_e100.log 2>&1
+python experiments/d8_oracle.py --seed 100 --out results/d8/oracle_fbs75_lam05_e100.json --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/oracle_fbs75_lam05_e100.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_ol32_e101.json --mode ol --N 32 > results/d8/oracle_ol32_e101.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_ol36_e101.json --mode ol --N 36 > results/d8/oracle_ol36_e101.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_fbs75_e101.json --mode fb --kmode step --kmax 7.5 --N 32 > results/d8/oracle_fbs75_e101.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_fbs150_e101.json --mode fb --kmode step --kmax 15 --N 32 > results/d8/oracle_fbs150_e101.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_ol32_lam05_e101.json --mode ol --N 32 --lam 0.5 > results/d8/oracle_ol32_lam05_e101.log 2>&1
+python experiments/d8_oracle.py --seed 101 --out results/d8/oracle_fbs75_lam05_e101.json --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/oracle_fbs75_lam05_e101.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_ol32_e102.json --mode ol --N 32 > results/d8/oracle_ol32_e102.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_ol36_e102.json --mode ol --N 36 > results/d8/oracle_ol36_e102.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_fbs75_e102.json --mode fb --kmode step --kmax 7.5 --N 32 > results/d8/oracle_fbs75_e102.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_fbs150_e102.json --mode fb --kmode step --kmax 15 --N 32 > results/d8/oracle_fbs150_e102.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_ol32_lam05_e102.json --mode ol --N 32 --lam 0.5 > results/d8/oracle_ol32_lam05_e102.log 2>&1
+python experiments/d8_oracle.py --seed 102 --out results/d8/oracle_fbs75_lam05_e102.json --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/oracle_fbs75_lam05_e102.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_ol32_e103.json --mode ol --N 32 > results/d8/oracle_ol32_e103.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_ol36_e103.json --mode ol --N 36 > results/d8/oracle_ol36_e103.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_fbs75_e103.json --mode fb --kmode step --kmax 7.5 --N 32 > results/d8/oracle_fbs75_e103.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_fbs150_e103.json --mode fb --kmode step --kmax 15 --N 32 > results/d8/oracle_fbs150_e103.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_ol32_lam05_e103.json --mode ol --N 32 --lam 0.5 > results/d8/oracle_ol32_lam05_e103.log 2>&1
+python experiments/d8_oracle.py --seed 103 --out results/d8/oracle_fbs75_lam05_e103.json --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/oracle_fbs75_lam05_e103.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_ol32_e104.json --mode ol --N 32 > results/d8/oracle_ol32_e104.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_ol36_e104.json --mode ol --N 36 > results/d8/oracle_ol36_e104.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_fbs75_e104.json --mode fb --kmode step --kmax 7.5 --N 32 > results/d8/oracle_fbs75_e104.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_fbs150_e104.json --mode fb --kmode step --kmax 15 --N 32 > results/d8/oracle_fbs150_e104.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_ol32_lam05_e104.json --mode ol --N 32 --lam 0.5 > results/d8/oracle_ol32_lam05_e104.log 2>&1
+python experiments/d8_oracle.py --seed 104 --out results/d8/oracle_fbs75_lam05_e104.json --mode fb --kmode step --kmax 7.5 --N 32 --lam 0.5 > results/d8/oracle_fbs75_lam05_e104.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s0.pt --seed 200 --total_steps 150 --out results/d8/fbs32_M12_m0_e200.json --fb 1 --kmode step --kmax 7.5 --N 32 --M 12 > results/d8/fbs32_M12_m0_e200.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s1.pt --seed 201 --total_steps 150 --out results/d8/fbs32_M12_m1_e201.json --fb 1 --kmode step --kmax 7.5 --N 32 --M 12 > results/d8/fbs32_M12_m1_e201.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s2.pt --seed 202 --total_steps 150 --out results/d8/fbs32_M12_m2_e202.json --fb 1 --kmode step --kmax 7.5 --N 32 --M 12 > results/d8/fbs32_M12_m2_e202.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s0.pt --seed 200 --total_steps 150 --out results/d8/fbs32_k35_m0_e200.json --fb 1 --kmode step --kmax 3.5 --N 32 > results/d8/fbs32_k35_m0_e200.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s1.pt --seed 201 --total_steps 150 --out results/d8/fbs32_k35_m1_e201.json --fb 1 --kmode step --kmax 3.5 --N 32 > results/d8/fbs32_k35_m1_e201.log 2>&1
+python experiments/d8_eval.py --ckpt suite_hi/ckpt/es_s2.pt --seed 202 --total_steps 150 --out results/d8/fbs32_k35_m2_e202.json --fb 1 --kmode step --kmax 3.5 --N 32 > results/d8/fbs32_k35_m2_e202.log 2>&1
