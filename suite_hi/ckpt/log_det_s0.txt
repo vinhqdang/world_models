@@ -3,3 +3,20 @@ data (299141, 2) fall transitions 0.085
 Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
   print(f'step {step:6d} loss {float(loss):.4f} pred {info["pred"]:.4f} sigreg {info["sigreg"]:.4f}  {time.time()-t0:.0f}s', flush=True)
 step      1 loss 0.0984 pred 0.0984 sigreg 0.0000  0s
+step    500 loss 0.0309 pred 0.0309 sigreg 0.0000  5s
+step   1000 loss 0.0310 pred 0.0310 sigreg 0.0000  11s
+step   1500 loss 0.0252 pred 0.0252 sigreg 0.0000  17s
+step   2000 loss 0.0264 pred 0.0264 sigreg 0.0000  22s
+step   2500 loss 0.0250 pred 0.0250 sigreg 0.0000  27s
+step   3000 loss 0.0276 pred 0.0276 sigreg 0.0000  32s
+step   3500 loss 0.0203 pred 0.0203 sigreg 0.0000  38s
+step   4000 loss 0.0243 pred 0.0243 sigreg 0.0000  43s
+step   4500 loss 0.0218 pred 0.0218 sigreg 0.0000  49s
+step   5000 loss 0.0238 pred 0.0238 sigreg 0.0000  54s
+step   5500 loss 0.0244 pred 0.0244 sigreg 0.0000  59s
+step   6000 loss 0.0211 pred 0.0211 sigreg 0.0000  65s
+step   6500 loss 0.0247 pred 0.0247 sigreg 0.0000  70s
+step   7000 loss 0.0219 pred 0.0219 sigreg 0.0000  75s
+step   7500 loss 0.0250 pred 0.0250 sigreg 0.0000  81s
+step   8000 loss 0.0256 pred 0.0256 sigreg 0.0000  86s
+saved suite_hi/ckpt/det_s0.pt
