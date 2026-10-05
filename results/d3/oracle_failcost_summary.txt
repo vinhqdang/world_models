@@ -1,0 +1,5 @@
+config                       runs   eps  success   fall  timeout  medsteps  sec/run
+orfc10_fbc_N32                 3  3063  0.856  0.128  0.017    41.3   25   seedSD(succ)=0.009
+orfc10_ol_N32                  3  1857  0.780  0.053  0.167    60.7   22   seedSD(succ)=0.011
+orfc4_fbc_N32                  3  3050  0.856  0.132  0.012    42.0   29   seedSD(succ)=0.005
+orfc4_ol_N32                   3  1867  0.757  0.078  0.165    62.5   24   seedSD(succ)=0.022
