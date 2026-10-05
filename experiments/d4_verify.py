@@ -430,7 +430,35 @@ def t3():
             d, th = fit(n, 1000 * n + k); ds.append(d); ex = th
         meds.append(np.median(ds))
         P(f'{n:7d} {np.median(ds):12.4f} {np.max(ds):10.4f}   {np.round(ex, 3)}')
+    t3g()
     rec('T3f_consistency', meds[-1], f'median dist at largest n; decreasing: {all(meds[i+1] < meds[i] * 1.15 for i in range(len(meds)-1))}; first={meds[0]:.3f}', tol=0.1)
+
+
+def t3g():
+    P('\n(g) V-statistic energy score (self-pairs included, factor (m-1)/m on the spread term) is NOT proper: Gaussian scale family, truth N(0,1)')
+    P('    risk R_V(s) = sqrt(2/pi) sqrt(1+s^2) - rho s/sqrt(pi), rho=(m-1)/m; minimiser s_m^2 = rho^2/(2-rho^2)')
+    P(f"{'m':>4} {'rho':>7} {'s_m exact':>10} {'s_m numeric':>12} {'R_V(s=1) exact':>15} {'R_V(s=1) MC':>12}")
+    worst = 0
+    for m in [2, 4, 8, 32, 1000]:
+        rho = (m - 1) / m
+        sm = math.sqrt(rho ** 2 / (2 - rho ** 2))
+        Rv = lambda s_: math.sqrt(2 / math.pi) * math.sqrt(1 + s_ ** 2) - rho * s_ / math.sqrt(math.pi)
+        sn = optimize.minimize_scalar(Rv, bounds=(0.01, 3), method='bounded', options=dict(xatol=1e-10)).x
+        nn = 200_000 if QUICK else 1_000_000
+        mm = min(m, 64)
+        y = rng.normal(size=nn); X = rng.normal(size=(nn, mm))
+        t1_ = np.abs(X - y[:, None]).mean(1)
+        D = np.abs(X[:, :, None] - X[:, None, :]).sum((1, 2)) / (mm * mm) if mm <= 8 else None
+        if D is None:
+            Rmc = float('nan')
+        else:
+            Rmc = np.mean(t1_ - 0.5 * D)
+        rho_mm = (mm - 1) / mm
+        Rv_mm = math.sqrt(2 / math.pi) * math.sqrt(2) - rho_mm * 1.0 / math.sqrt(math.pi)
+        if D is not None: worst = max(worst, abs(Rmc - Rv_mm))
+        worst = max(worst, abs(sn - sm))
+        P(f'{m:4d} {rho:7.4f} {sm:10.4f} {sn:12.4f} {Rv_mm if D is not None else float("nan"):15.5f} {Rmc:12.5f}')
+    rec('T3g_vstat_improper', worst, 'closed-form minimiser vs numeric; MC check of R_V(1) for m<=8', tol=5e-3)
 
 
 # =====================================================================================================
@@ -663,6 +691,15 @@ def t5():
     # moment-matching in higher dimension / affine: same mean and covariance => identical under any affine recalibration based on 2 moments
     P('\nSame mean and covariance, different failure probability (affine recalibration based on second moments is the identity):')
     P(f"   P=N(0,1) vs Q=Laplace(var 1) vs Q2=two-point +-1 (wind-like): mean/var of Q2 = {0:.1f}/{1:.1f};  Q2(Z>=B=1)=0.5, P(Z>=1)={stats.norm.sf(1):.4f}, Q(Z>=1)={Qbar(1.0):.4f};  Q2(Z>=1.01)=0")
+    # error floor of the best pure-scale recalibration (location fixed at 0 by symmetry)
+    P('\nError floor: inf_s sup_x |F_Q(x) - Phi(x/s)| (Kolmogorov distance of Q to the best centred Gaussian scale)')
+    xs_ = np.linspace(-12, 12, 48001)
+    FL = np.where(xs_ < 0, 0.5 * np.exp(xs_ / b), 1 - 0.5 * np.exp(-xs_ / b))
+    FT = np.where(xs_ < -1, 0.0, np.where(xs_ < 1, 0.5, 1.0))
+    fl = optimize.minimize_scalar(lambda s_: np.max(np.abs(FL - ndtr(xs_ / s_))), bounds=(0.3, 3), method='bounded', options=dict(xatol=1e-8))
+    ft = optimize.minimize_scalar(lambda s_: np.max(np.abs(FT - ndtr(xs_ / s_))), bounds=(0.3, 3), method='bounded', options=dict(xatol=1e-8))
+    P(f'   Laplace(var 1): floor {fl.fun:.4f} at s={fl.x:.3f};  two-point +-1: floor {ft.fun:.4f} at s={ft.x:.3f} (>= 1/4 proven)')
+    rec('T5c_floor_twopoint_ge_quarter', max(0.0, 0.25 - ft.fun), 'floor must be >= 0.25 (value %.4f)' % ft.fun, tol=1e-6)
     rec('T5c_summary', 0.0, 'analytic', tol=0)
 
 

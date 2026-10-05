@@ -1,12 +1,174 @@
 {
+ "T1a_identity": {
+  "max_err": 0.0006143200650042512,
+  "note": "relative MC error, expect ~1e-3",
+  "tol": 0.008,
+  "ok": true
+ },
+ "T1b_mse_to_mean": {
+  "max_err": 0.00810776004567848,
+  "note": "final sup error (approximation floor of the basis included); decreasing=True",
+  "tol": 0.05,
+  "ok": true
+ },
+ "T1c_identity": {
+  "max_err": 4.440892098500626e-16,
+  "note": "exact identity (machine precision)",
+  "tol": 1e-12,
+  "ok": true
+ },
+ "T1c_bound_violations": {
+  "max_err": 0.0,
+  "note": "number of violations of R<=dv (expect 0)",
+  "tol": 0,
+  "ok": true
+ },
+ "T1c_MC_regret": {
+  "max_err": 0.005757806212276728,
+  "note": "abs error of MC regret vs exact",
+  "tol": 0.05,
+  "ok": true
+ },
+ "T1d_tightness": {
+  "max_err": 0.0017385291709639539,
+  "note": "relative error of MC regret vs V-eps^2",
+  "tol": 0.008,
+  "ok": true
+ },
+ "T1e_fail_penalty": {
+  "max_err": 0.0007511431954791094,
+  "note": "relative error",
+  "tol": 0.01,
+  "ok": true
+ },
+ "T1f_cvar_closed_form": {
+  "max_err": 0.0015705237465004785,
+  "note": "MC (tail mean) vs closed form; quad column cross-checks",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T1f_cvar_regret": {
+  "max_err": 0.001587432985750642,
+  "note": "relative error",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T1f_cvar_bounds": {
+  "max_err": 0.0,
+  "note": "E C <= CVaR_alpha <= E C/(1-alpha) on noncentral chi2 grid",
+  "tol": 0,
+  "ok": true
+ },
+ "T2a_select_prob": {
+  "max_err": 0.0012828400000000628,
+  "note": "max |P_MC-P_exact|; max |z-score| = 1.98",
+  "tol": 0.006,
+  "ok": true
+ },
+ "T2a_monotone_in_Nr": {
+  "max_err": 0.0,
+  "note": "P nondecreasing in N_r on grid",
+  "tol": 0,
+  "ok": true
+ },
+ "T2b_excess_cost": {
+  "max_err": 0.0029549999999998744,
+  "note": "abs error of E[true cost]-c_s = P*kappa*(p-theta)",
+  "tol": 0.03,
+  "ok": true
+ },
+ "T2b_winner_curse": {
+  "max_err": 0.008474999999999788,
+  "note": "abs error of E[min J_hat] formula",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T2c_hoeffding_violations": {
+  "max_err": 0.0,
+  "note": "number of violated bounds (expect 0)",
+  "tol": 0,
+  "ok": true
+ },
+ "T2d_verification_fallback": {
+  "max_err": 0.001810847994268422,
+  "note": "abs error exact vs MC",
+  "tol": 0.015,
+  "ok": true
+ },
+ "T2d_verification_pooled": {
+  "max_err": 0.0009158365436159333,
+  "note": "abs error exact vs MC",
+  "tol": 0.015,
+  "ok": true
+ },
+ "T2e_fresh_unbiased": {
+  "max_err": 0.0036000000000000476,
+  "note": "stage-1 biased by -3.575",
+  "tol": 0.03,
+  "ok": true
+ },
+ "T2f_shrink_equalM": {
+  "max_err": 0.0,
+  "note": "fraction argmin changed (expect 0)",
+  "tol": 0,
+  "ok": true
+ },
+ "T2f_shrink_unequalM_example": {
+  "max_err": 0.0,
+  "note": "unequal-M ranking flip exhibited; random flip fraction 0.392",
+  "tol": 0,
+  "ok": true
+ },
+ "T3a_es_closed_form": {
+  "max_err": 0.0005610209728537097,
+  "note": "abs error",
+  "tol": 0.005,
+  "ok": true
+ },
+ "T3b_propriety_grid": {
+  "max_err": 0.0,
+  "note": "distance of grid minimiser from truth",
+  "tol": 0.03,
+  "ok": true
+ },
+ "T3c_energy_distance_identity": {
+  "max_err": 0.00018220471757039985,
+  "note": "abs error",
+  "tol": 0.005,
+  "ok": true
+ },
+ "T3d_point_mass_median": {
+  "max_err": 0.00685281944005478,
+  "note": "grid resolution 0.02",
+  "tol": 0.05,
+  "ok": true
+ },
+ "T3e_crn_variance": {
+  "max_err": 0.0002592296872739888,
+  "note": "relative error",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T3g_vstat_improper": {
+  "max_err": 0.0010419566504570321,
+  "note": "closed-form minimiser vs numeric; MC check of R_V(1) for m<=8",
+  "tol": 0.005,
+  "ok": true
+ },
+ "T3f_consistency": {
+  "max_err": 0.023142090602016625,
+  "note": "median dist at largest n; decreasing: True; first=0.151",
+  "tol": 0.1,
+  "ok": true
+ },
  "T4a_variance_growth": {
-  "max_err": 0.006719952102003819,
+  "max_err": 0.0028834387324956356,
   "note": "relative error of exact variances",
   "tol": 0.02,
   "ok": true
  },
  "T4b_LQG_ratio_H": {
-  "max_err": 0.005207377251751935,
+  "max_err": 0.0027938992593074022,
   "note": "relative MC error",
   "tol": 0.04,
   "ok": true
@@ -18,20 +180,20 @@
   "ok": true
  },
  "T4b_entropic_H1": {
-  "max_err": 0.001048946399330814,
+  "max_err": 0.00048284207371292854,
   "note": "rel. error MC vs closed form (H=1)",
   "tol": 0.02,
   "ok": true
  },
  "T4c_barrier_MC_vs_grid": {
-  "max_err": 1.5077850934276908,
+  "max_err": 1.867128209450517,
   "note": "max |MC - grid value| in units of MC standard errors (grid discretisation bias included)",
   "tol": 4.5,
   "ok": true
  },
  "T4c_barrier_gap_positive": {
-  "max_err": 0.10847509456403866,
-  "note": "min over H>=2 of V_OL - V_CL (must be >0); gap(H=1)=-2.13e-08",
+  "max_err": 0.10847092657763174,
+  "note": "min over H>=2 of V_OL - V_CL (must be >0); gap(H=1)=-2.14e-08",
   "tol": null,
   "ok": true
  },
@@ -41,18 +203,18 @@
   "ok": true
  },
  "T4c_marginal_exceedance": {
-  "max_err": 0.004411804915881556,
+  "max_err": 0.001786804915881568,
   "note": "abs error exact vs MC",
-  "tol": 0.004,
-  "ok": false
+  "tol": 0.003354101966249685,
+  "ok": true
  },
  "T4c_firstpassage_crossover": {
   "max_err": 0.0,
-  "note": "FB<=OL for t<=20: True; at t=40 FB=0.719 vs OL=0.684",
+  "note": "FB<=OL for t<=20: True; at t=40 FB=0.723 vs OL=0.683",
   "ok": true
  },
  "T5a_laplace_tails_MC": {
-  "max_err": 0.015629951532772284,
+  "max_err": 0.012150382609240219,
   "note": "relative error of Laplace tail MC vs formula (B<=3 effectively)",
   "tol": 0.03,
   "ok": true
@@ -61,6 +223,12 @@
   "max_err": 0.0,
   "note": "number of scales that fix both decisions (must be 0)",
   "tol": 0,
+  "ok": true
+ },
+ "T5c_floor_twopoint_ge_quarter": {
+  "max_err": 0.0,
+  "note": "floor must be >= 0.25 (value 0.2500)",
+  "tol": 1e-06,
   "ok": true
  },
  "T5c_summary": {

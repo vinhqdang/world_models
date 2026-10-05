@@ -76,7 +76,7 @@ trial    R exact  R via id.   bound dv  R<=dv      R_MC
    0.99         8.3592       8.3459     0.9100
   -> [T1f_cvar_regret] max error = 1.587e-03  relative error  (tolerance 0.02: PASS)
   -> [T1f_cvar_bounds] max error = 0.000e+00  E C <= CVaR_alpha <= E C/(1-alpha) on noncentral chi2 grid  (tolerance 0: PASS)
-   [t1 took 7.6s]
+   [t1 took 10.2s]
 
 ====================================================================================================
 T2  tail blindness amplified by selection
@@ -161,7 +161,7 @@ Shrinkage (normal-normal empirical Bayes, B(M) = tau^2/(tau^2+sigma^2/M)); ranki
    unequal M (racing-like): fraction changed = 0.3922
    explicit example: raw (0.9 @M=4, 1.0 @M=64) -> argmin 1; shrunk (1.4500, 1.0588) -> argmin 2
   -> [T2f_shrink_unequalM_example] max error = 0.000e+00  unequal-M ranking flip exhibited; random flip fraction 0.392  (tolerance 0: PASS)
-   [t2 took 65.7s]
+   [t2 took 64.5s]
 
 ====================================================================================================
 T3  energy score
@@ -200,42 +200,52 @@ T3  energy score
     800       0.0897     0.2529   [ 1.081 -0.524 -0.779]
    3200       0.0424     0.0620   [1.013 0.479 0.802]
   12800       0.0231     0.0364   [ 1.016 -0.51  -0.776]
+
+(g) V-statistic energy score (self-pairs included, factor (m-1)/m on the spread term) is NOT proper: Gaussian scale family, truth N(0,1)
+    risk R_V(s) = sqrt(2/pi) sqrt(1+s^2) - rho s/sqrt(pi), rho=(m-1)/m; minimiser s_m^2 = rho^2/(2-rho^2)
+   m     rho  s_m exact  s_m numeric  R_V(s=1) exact  R_V(s=1) MC
+   2  0.5000     0.3780       0.3780         0.84628      0.84638
+   4  0.7500     0.6255       0.6255         0.70524      0.70628
+   8  0.8750     0.7876       0.7876         0.63471      0.63493
+  32  0.9688     0.9403       0.9403             nan          nan
+1000  0.9990     0.9980       0.9980             nan          nan
+  -> [T3g_vstat_improper] max error = 1.042e-03  closed-form minimiser vs numeric; MC check of R_V(1) for m<=8  (tolerance 0.005: PASS)
   -> [T3f_consistency] max error = 2.314e-02  median dist at largest n; decreasing: True; first=0.151  (tolerance 0.1: PASS)
-   [t3 took 12.5s]
+   [t3 took 25.4s]
 
 ====================================================================================================
 T4  open loop vs closed loop under process noise
 ====================================================================================================
 (a) x_{t+1} = x_t + u_t + sigma w_t, sigma=0.5, x_0=0, g=0.  Var(x_t): open loop vs feedback u_t=-k x_t
   t   OL exact      OL MC  k=0.3 exact   k=0.3 MC  k=1 exact    k=1 MC  stationary(k=.3)
-  1     0.2500     0.2494       0.2500     0.2494     0.2500    0.2494            0.4902
-  2     0.5000     0.4993       0.3725     0.3721     0.2500    0.2498            0.4902
-  4     1.0000     1.0001       0.4619     0.4625     0.2500    0.2502            0.4902
-  8     2.0000     1.9962       0.4886     0.4883     0.2500    0.2500            0.4902
- 16     4.0000     3.9939       0.4902     0.4909     0.2500    0.2497            0.4902
- 32     8.0000     7.9981       0.4902     0.4911     0.2500    0.2497            0.4902
-  -> [T4a_variance_growth] max error = 2.206e-03  relative error of exact variances  (tolerance 0.02: PASS)
+  1     0.2500     0.2501       0.2500     0.2501     0.2500    0.2501            0.4902
+  2     0.5000     0.5006       0.3725     0.3729     0.2500    0.2500            0.4902
+  4     1.0000     1.0011       0.4619     0.4622     0.2500    0.2500            0.4902
+  8     2.0000     2.0004       0.4886     0.4889     0.2500    0.2507            0.4902
+ 16     4.0000     3.9972       0.4902     0.4903     0.2500    0.2502            0.4902
+ 32     8.0000     8.0201       0.4902     0.4909     0.2500    0.2497            0.4902
+  -> [T4a_variance_growth] max error = 2.883e-03  relative error of exact variances  (tolerance 0.02: PASS)
 
 (b) terminal cost (x_H-g)^2, g=0: optimal value, OL (best deterministic plan) vs CL (deadbeat last step).  Predicted ratio = H
   H      crit   OL exact      OL MC   CL exact      CL MC   ratio
-  1         E     0.2500     0.2500     0.2500     0.2498    1.00
-  1    CVaR.9     1.0982     1.0993     1.0982     1.0991    1.00
-  1   CVaR.99     2.1123     2.1186     2.1123     2.1139    1.00
-  2         E     0.5000     0.4996     0.2500     0.2503    2.00
-  2    CVaR.9     2.1964     2.1953     1.0982     1.0992    2.00
-  2   CVaR.99     4.2246     4.2240     2.1123     2.1124    2.00
-  4         E     1.0000     0.9997     0.2500     0.2503    4.00
-  4    CVaR.9     4.3929     4.3950     1.0982     1.0988    4.00
-  4   CVaR.99     8.4492     8.4533     2.1123     2.1117    4.00
-  8         E     2.0000     1.9958     0.2500     0.2505    8.00
-  8    CVaR.9     8.7857     8.7573     1.0982     1.0999    8.00
-  8   CVaR.99    16.8983    16.7853     2.1123     2.1151    8.00
-  -> [T4b_LQG_ratio_H] max error = 6.687e-03  relative MC error  (tolerance 0.04: PASS)
+  1         E     0.2500     0.2502     0.2500     0.2501    1.00
+  1    CVaR.9     1.0982     1.0976     1.0982     1.0979    1.00
+  1   CVaR.99     2.1123     2.1097     2.1123     2.1064    1.00
+  2         E     0.5000     0.5008     0.2500     0.2502    2.00
+  2    CVaR.9     2.1964     2.2016     1.0982     1.0999    2.00
+  2   CVaR.99     4.2246     4.2280     2.1123     2.1149    2.00
+  4         E     1.0000     0.9999     0.2500     0.2502    4.00
+  4    CVaR.9     4.3929     4.3935     1.0982     1.0992    4.00
+  4   CVaR.99     8.4492     8.4520     2.1123     2.1148    4.00
+  8         E     2.0000     1.9991     0.2500     0.2499    8.00
+  8    CVaR.9     8.7857     8.7867     1.0982     1.0967    8.00
+  8   CVaR.99    16.8983    16.9028     2.1123     2.1073    8.00
+  -> [T4b_LQG_ratio_H] max error = 2.794e-03  relative MC error  (tolerance 0.04: PASS)
    OL with mean offset m: E=(m^2+H sig^2); CVaR is increasing in |m| (checked on a grid, H=4, alpha=0.9)
    CVaR_0.9 at m=0,.25,.5,1,2: 4.3929, 4.6616, 5.4048, 7.7659, 14.2690
   -> [T4b_cvar_monotone_in_offset] max error = 0.000e+00  increasing  (tolerance 0: PASS)
    entropic risk (1/theta) ln E exp(theta C), theta=0.4: OL finite iff 2 theta H sig^2<1: H=1: 0.2789, H=2: 0.6385 H=3: 1.1454 H=4: 2.0118 H=5: inf
-  -> [T4b_entropic_H1] max error = 2.012e-03  rel. error MC vs closed form (H=1)  (tolerance 0.02: PASS)
+  -> [T4b_entropic_H1] max error = 4.828e-04  rel. error MC vs closed form (H=1)  (tolerance 0.02: PASS)
 
 (c) absorbing boundary: x_{t+1} = x_t + u_t + sigma w, |u|<=U, absorbed (stopped) at x>=B.  Cost = (x_H-g)^2 + kappa 1[hit]  (x_H=B if absorbed)
    x0=0.0, g=0.6, B=1.0, sigma=0.2, kappa=4.0, U=0.5, absorbed cost 4.160
@@ -243,3 +253,107 @@ T4  open loop vs closed loop under process noise
   1    0.07271     0.07271 -0.00000    -0.000    0.07199    0.07212 0.00062  [0.475]
   2    0.07502     0.18349  0.10847     1.446    0.07538    0.18393 0.00109  [-0.13  0.5 ]
   3    0.07519     0.29369  0.21850     2.906    0.07506    0.29638 0.00144  [-0.5    0.305  0.5  ]
+  4    0.07520     0.39854  0.32334     4.300    0.07418    0.40002 0.00172  [-0.487 -0.255  0.5    0.5  ]
+  5    0.07520     0.49565  0.42045     5.591    0.07465    0.49681 0.00195  [-0.5    0.02  -0.299  0.5    0.5  ]
+  -> [T4c_barrier_MC_vs_grid] max error = 1.867e+00  max |MC - grid value| in units of MC standard errors (grid discretisation bias included)  (tolerance 4.5: PASS)
+  -> [T4c_barrier_gap_positive] max error = 1.085e-01  min over H>=2 of V_OL - V_CL (must be >0); gap(H=1)=-2.14e-08
+
+   last-step function q(y)=E[cost of landing at y+sigma w]: minimiser y*=0.4749 (< B=1.0: True), q*=0.07271 (< absorbed cost 4.160: True); V_CL(H=2) is approx q* when step-1 failure is avoided
+
+   marginal exceedance P(x_t >= B) of holding at g (no absorption): OL Phibar(d/(sigma sqrt t)) vs feedback k=0.5: Phibar(d/sigma_t); d=0.40, sigma=0.2
+  t   OL exact     OL MC   FB exact     FB MC
+  1     0.0228    0.0228     0.0228    0.0228
+  2     0.0786    0.0785     0.0368    0.0369
+  5     0.1855    0.1859     0.0416    0.0413
+ 10     0.2635    0.2634     0.0416    0.0414
+ 20     0.3274    0.3286     0.0416    0.0420
+ 40     0.3759    0.3752     0.0416    0.0411
+  -> [T4c_marginal_exceedance] max error = 1.787e-03  abs error exact vs MC  (tolerance 0.0033541: PASS)
+
+   first-passage (absorbing) hit probability of the same two hold policies: OL vs feedback k=0.5
+  t  P(hit) OL  P(hit) FB
+  1     0.0228     0.0228
+  2     0.0869     0.0549
+  5     0.2613     0.1448
+ 10     0.4199     0.2723
+ 20     0.5667     0.4734
+ 40     0.6834     0.7234
+   NOTE: the cumulative first-passage probability of ANY stationary Gaussian closed loop tends to 1 as t grows; feedback bounds the spread, not the cumulative hit probability. At t=40 the weak feedback k=0.5 is no better than open loop.
+   [t4 took 231.0s]
+
+====================================================================================================
+T5  scale recalibration cannot repair a shape change
+====================================================================================================
+Model P = N(0,1); true post-shift law Q = Laplace with variance 1 (b=1/sqrt2): same mean and variance, different shape.  Failure event {Z >= B}.
+    B    Q(Z>=B)  P(Z>=B) (s=1)  ratio P/Q  s_B matching
+  0.5    0.24653        0.30854     1.2515        0.7295
+  1.0    0.12156        0.15866     1.3052        0.8567
+  1.5    0.05994        0.06681     1.1146        0.9644
+  2.0    0.02955        0.02275     0.7698        1.0597
+  3.0    0.00718        0.00135     0.1879        1.2255
+  4.0    0.00175        0.00003     0.0181        1.3696
+  5.0    0.00042        0.00000     0.0007        1.4987
+  -> [T5a_laplace_tails_MC] max error = 1.215e-02  relative error of Laplace tail MC vs formula (B<=3 effectively)  (tolerance 0.03: PASS)
+   matching scale s_B depends on B (not constant) -> Q is not in the scale family of P.
+   limit: for every s, P_s(Z>=B)/Q(Z>=B) -> 0 as B->inf; check s in {1, 1.22, 1.5, 2} at B=10: s=1: 2.11e-17, s=1.22: 3.42e-10, s=1.5: 3.63e-05, s=2: 7.95e-01
+
+Two decision problems (accept risky iff model failure prob < theta): B1=1 (theta1=0.14), B2=3 (theta2=0.004).
+   truth: accept at B1 (0.1217<0.14), reject at B2 (0.0072>0.004).  Model N(0,s^2): accept@B1 iff Phibar(1/s)<0.14 iff s<s_a;  reject@B2 iff Phibar(3/s)>0.004 iff s>s_b
+   s_a = 0.9257, s_b = 1.1312  -> need s<0.9257 and s>1.1312: empty since s_b>s_a
+   grid check: number of scales s in [0.3,3] giving both correct decisions = 0
+  -> [T5b_decision_counterexample] max error = 0.000e+00  number of scales that fix both decisions (must be 0)  (tolerance 0: PASS)
+   variance-matched s=1 : decisions: B1 accept = False, B2 accept = True (truth: True, False)
+   with kappa=100.0: risky candidate (B2) wrongly accepted by s=1 model: true excess cost = kappa*(Q-theta2) = 0.3185
+
+Same mean and covariance, different failure probability (affine recalibration based on second moments is the identity):
+   P=N(0,1) vs Q=Laplace(var 1) vs Q2=two-point +-1 (wind-like): mean/var of Q2 = 0.0/1.0;  Q2(Z>=B=1)=0.5, P(Z>=1)=0.1587, Q(Z>=1)=0.1216;  Q2(Z>=1.01)=0
+
+Error floor: inf_s sup_x |F_Q(x) - Phi(x/s)| (Kolmogorov distance of Q to the best centred Gaussian scale)
+   Laplace(var 1): floor 0.0282 at s=0.809;  two-point +-1: floor 0.2500 at s=1.483 (>= 1/4 proven)
+  -> [T5c_floor_twopoint_ge_quarter] max error = 0.000e+00  floor must be >= 0.25 (value 0.2500)  (tolerance 1e-06: PASS)
+  -> [T5c_summary] max error = 0.000e+00  analytic  (tolerance 0: PASS)
+   [t5 took 0.3s]
+
+====================================================================================================
+SUMMARY (max errors)
+  T1a_identity                       err=6.143e-04  ok=True  relative MC error, expect ~1e-3
+  T1b_mse_to_mean                    err=8.108e-03  ok=True  final sup error (approximation floor of the basis included); decreasing=True
+  T1c_identity                       err=4.441e-16  ok=True  exact identity (machine precision)
+  T1c_bound_violations               err=0.000e+00  ok=True  number of violations of R<=dv (expect 0)
+  T1c_MC_regret                      err=5.758e-03  ok=True  abs error of MC regret vs exact
+  T1d_tightness                      err=1.739e-03  ok=True  relative error of MC regret vs V-eps^2
+  T1e_fail_penalty                   err=7.511e-04  ok=True  relative error
+  T1f_cvar_closed_form               err=1.571e-03  ok=True  MC (tail mean) vs closed form; quad column cross-checks
+  T1f_cvar_regret                    err=1.587e-03  ok=True  relative error
+  T1f_cvar_bounds                    err=0.000e+00  ok=True  E C <= CVaR_alpha <= E C/(1-alpha) on noncentral chi2 grid
+  T2a_select_prob                    err=1.283e-03  ok=True  max |P_MC-P_exact|; max |z-score| = 1.98
+  T2a_monotone_in_Nr                 err=0.000e+00  ok=True  P nondecreasing in N_r on grid
+  T2b_excess_cost                    err=2.955e-03  ok=True  abs error of E[true cost]-c_s = P*kappa*(p-theta)
+  T2b_winner_curse                   err=8.475e-03  ok=True  abs error of E[min J_hat] formula
+  T2c_hoeffding_violations           err=0.000e+00  ok=True  number of violated bounds (expect 0)
+  T2d_verification_fallback          err=1.811e-03  ok=True  abs error exact vs MC
+  T2d_verification_pooled            err=9.158e-04  ok=True  abs error exact vs MC
+  T2e_fresh_unbiased                 err=3.600e-03  ok=True  stage-1 biased by -3.575
+  T2f_shrink_equalM                  err=0.000e+00  ok=True  fraction argmin changed (expect 0)
+  T2f_shrink_unequalM_example        err=0.000e+00  ok=True  unequal-M ranking flip exhibited; random flip fraction 0.392
+  T3a_es_closed_form                 err=5.610e-04  ok=True  abs error
+  T3b_propriety_grid                 err=0.000e+00  ok=True  distance of grid minimiser from truth
+  T3c_energy_distance_identity       err=1.822e-04  ok=True  abs error
+  T3d_point_mass_median              err=6.853e-03  ok=True  grid resolution 0.02
+  T3e_crn_variance                   err=2.592e-04  ok=True  relative error
+  T3g_vstat_improper                 err=1.042e-03  ok=True  closed-form minimiser vs numeric; MC check of R_V(1) for m<=8
+  T3f_consistency                    err=2.314e-02  ok=True  median dist at largest n; decreasing: True; first=0.151
+  T4a_variance_growth                err=2.883e-03  ok=True  relative error of exact variances
+  T4b_LQG_ratio_H                    err=2.794e-03  ok=True  relative MC error
+  T4b_cvar_monotone_in_offset        err=0.000e+00  ok=True  increasing
+  T4b_entropic_H1                    err=4.828e-04  ok=True  rel. error MC vs closed form (H=1)
+  T4c_barrier_MC_vs_grid             err=1.867e+00  ok=True  max |MC - grid value| in units of MC standard errors (grid discretisation bias included)
+  T4c_barrier_gap_positive           err=1.085e-01  ok=True  min over H>=2 of V_OL - V_CL (must be >0); gap(H=1)=-2.14e-08
+  T4c_ystar_below_B                  err=0.000e+00  ok=True  y*=0.4749, q*=0.07271
+  T4c_marginal_exceedance            err=1.787e-03  ok=True  abs error exact vs MC
+  T4c_firstpassage_crossover         err=0.000e+00  ok=True  FB<=OL for t<=20: True; at t=40 FB=0.723 vs OL=0.683
+  T5a_laplace_tails_MC               err=1.215e-02  ok=True  relative error of Laplace tail MC vs formula (B<=3 effectively)
+  T5b_decision_counterexample        err=0.000e+00  ok=True  number of scales that fix both decisions (must be 0)
+  T5c_floor_twopoint_ge_quarter      err=0.000e+00  ok=True  floor must be >= 0.25 (value 0.2500)
+  T5c_summary                        err=0.000e+00  ok=True  analytic
+total 331.4s
