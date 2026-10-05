@@ -223,3 +223,10 @@ __marimo__/
 results/lewm/dbg*
 results/lewm/test*
 *.npz
+
+# checkpoints and scratch runs
+runs/
+suite_*/ckpt/
+suite_cliff/
+suite_fixed/
+*.pt
