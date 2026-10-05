@@ -1,0 +1,3 @@
+fbstep_crn3 - ol_indep: dsuccess=+0.168 [+0.111,+0.225]  dfall=-0.058 [-0.099,-0.018]  dtimeout=-0.110 [-0.154,-0.068]  
+fbstep_crn3 - ol_crn3: dsuccess=+0.037 [-0.006,+0.081]  dfall=+0.009 [-0.019,+0.037]  dtimeout=-0.046 [-0.082,-0.012]  
+fbstep_crn3 - fbstep_indep: dsuccess=+0.023 [-0.017,+0.062]  dfall=-0.026 [-0.059,+0.005]  dtimeout=+0.003 [-0.020,+0.029]  

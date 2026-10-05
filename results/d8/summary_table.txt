@@ -1,30 +1,50 @@
 Per-arm pooled results (cliff_hi, learned energy-score models seeds 0-2, E=16, H=10, iters=3, 95% CI = stratified episode bootstrap, B=4000)
 arm            runs   eps                success                   fall                timeout    median steps (CI) part-steps/step  sec/run  per-model-seed success
-ol32              6   557    0.761 [0.727,0.795]    0.068 [0.048,0.090]    0.171 [0.140,0.201]     58.0 [54.0,61.0]            7680      528  m0:0.753 m1:0.744 m2:0.785
-ol36              6   567    0.787 [0.751,0.820]    0.081 [0.060,0.104]    0.132 [0.106,0.160]     58.0 [55.0,61.0]            8640      577  m0:0.785 m1:0.795 m2:0.804
-fbs32             6   694    0.890 [0.867,0.912]    0.055 [0.039,0.072]    0.055 [0.039,0.072]     48.0 [46.0,51.0]            8640      599  m0:0.854 m1:0.908 m2:0.922
+ol32              7   586    0.765 [0.730,0.799]    0.072 [0.051,0.094]    0.164 [0.135,0.195]     58.0 [54.0,61.0]            7680      477  m0:0.778 m1:0.744 m2:0.785
+ol36              7   596    0.792 [0.758,0.824]    0.081 [0.059,0.102]    0.128 [0.102,0.156]     58.0 [55.0,61.0]            8640      522  m0:0.822 m1:0.795 m2:0.804
+fbs32             6   694    0.890 [0.867,0.912]    0.055 [0.037,0.072]    0.055 [0.039,0.072]     48.0 [46.0,51.0]            8640      599  m0:0.854 m1:0.908 m2:0.922
+fbs32_lam05       3   130    0.854 [0.792,0.908]    0.069 [0.031,0.115]    0.077 [0.038,0.123]     53.0 [49.0,55.0]            8640      261  m0:0.750 m1:0.905 m2:0.896
 
 Comparisons (difference = arm minus baseline; paired = matched (model seed, eval seed, slot, episode idx); McNemar exact p)
--- ol36 vs ol32: paired episodes n=517; unpaired n=567 vs 557 (common runs, common step window)
-   success  paired diff +0.019 [-0.025,+0.060] McNemar p=0.4191 (discordant 67/57);  unpaired diff +0.025 (0.761 -> 0.787) z-test p=0.3091
-   fall     paired diff +0.015 [-0.012,+0.043] McNemar p=0.3123 (discordant 28/20);  unpaired diff +0.013 (0.068 -> 0.081) z-test p=0.4107
-   timeout  paired diff -0.035 [-0.074,+0.002] McNemar p=0.0918 (discordant 42/60);  unpaired diff -0.038 (0.171 -> 0.132) z-test p=0.0733
-   steps-to-goal (successes) Mann-Whitney p=0.7589
--- fbs32 vs ol32: paired episodes n=545; unpaired n=694 vs 557 (common runs, common step window)
-   success  paired diff +0.127 [+0.086,+0.167] McNemar p=0.0000 (discordant 100/31);  unpaired diff +0.129 (0.761 -> 0.890) z-test p=0.0000
-   fall     paired diff -0.011 [-0.039,+0.015] McNemar p=0.5044 (discordant 25/31);  unpaired diff -0.013 (0.068 -> 0.055) z-test p=0.3217
-   timeout  paired diff -0.116 [-0.147,-0.084] McNemar p=0.0000 (discordant 12/75);  unpaired diff -0.116 (0.171 -> 0.055) z-test p=0.0000
+-- ol36 vs ol32: paired episodes n=543; unpaired n=596 vs 586 (common runs, common step window)
+   success  paired diff +0.020 [-0.020,+0.059] McNemar p=0.3750 (discordant 69/58);  unpaired diff +0.027 (0.765 -> 0.792) z-test p=0.2561
+   fall     paired diff +0.013 [-0.013,+0.037] McNemar p=0.4011 (discordant 29/22);  unpaired diff +0.009 (0.072 -> 0.081) z-test p=0.5656
+   timeout  paired diff -0.033 [-0.070,+0.006] McNemar p=0.0950 (discordant 43/61);  unpaired diff -0.036 (0.164 -> 0.128) z-test p=0.0768
+   steps-to-goal (successes) Mann-Whitney p=0.7527
+-- fbs32 vs ol32: paired episodes n=545; unpaired n=694 vs 586 (common runs, common step window)
+   success  paired diff +0.127 [+0.088,+0.167] McNemar p=0.0000 (discordant 100/31);  unpaired diff +0.126 (0.765 -> 0.890) z-test p=0.0000
+   fall     paired diff -0.011 [-0.039,+0.015] McNemar p=0.5044 (discordant 25/31);  unpaired diff -0.017 (0.072 -> 0.055) z-test p=0.2129
+   timeout  paired diff -0.116 [-0.149,-0.084] McNemar p=0.0000 (discordant 12/75);  unpaired diff -0.109 (0.164 -> 0.055) z-test p=0.0000
    steps-to-goal (successes) Mann-Whitney p=0.0000
--- fbs32 vs ol36: paired episodes n=554; unpaired n=694 vs 567 (common runs, common step window)
-   success  paired diff +0.103 [+0.067,+0.141] McNemar p=0.0000 (discordant 89/32);  unpaired diff +0.104 (0.787 -> 0.890) z-test p=0.0000
-   fall     paired diff -0.029 [-0.056,+0.000] McNemar p=0.0559 (discordant 23/39);  unpaired diff -0.026 (0.081 -> 0.055) z-test p=0.0617
-   timeout  paired diff -0.074 [-0.105,-0.043] McNemar p=0.0000 (discordant 21/62);  unpaired diff -0.078 (0.132 -> 0.055) z-test p=0.0000
+-- fbs32_lam05 vs ol32: paired episodes n=128; unpaired n=130 vs 110 (common runs, common step window)
+   success  paired diff +0.086 [+0.008,+0.164] McNemar p=0.0522 (discordant 19/8);  unpaired diff +0.054 (0.800 -> 0.854) z-test p=0.2694
+   fall     paired diff +0.008 [-0.047,+0.070] McNemar p=1.0000 (discordant 8/7);  unpaired diff +0.006 (0.064 -> 0.069) z-test p=0.8626
+   timeout  paired diff -0.094 [-0.156,-0.031] McNemar p=0.0075 (discordant 3/15);  unpaired diff -0.059 (0.136 -> 0.077) z-test p=0.1331
+   steps-to-goal (successes) Mann-Whitney p=0.2759
+-- fbs32 vs ol36: paired episodes n=554; unpaired n=694 vs 596 (common runs, common step window)
+   success  paired diff +0.103 [+0.065,+0.141] McNemar p=0.0000 (discordant 89/32);  unpaired diff +0.099 (0.792 -> 0.890) z-test p=0.0000
+   fall     paired diff -0.029 [-0.058,-0.002] McNemar p=0.0559 (discordant 23/39);  unpaired diff -0.026 (0.081 -> 0.055) z-test p=0.0642
+   timeout  paired diff -0.074 [-0.105,-0.043] McNemar p=0.0000 (discordant 21/62);  unpaired diff -0.073 (0.128 -> 0.055) z-test p=0.0000
    steps-to-goal (successes) Mann-Whitney p=0.0000
+-- fbs32_lam05 vs ol36: paired episodes n=128; unpaired n=130 vs 114 (common runs, common step window)
+   success  paired diff +0.008 [-0.062,+0.086] McNemar p=1.0000 (discordant 12/11);  unpaired diff -0.015 (0.868 -> 0.854) z-test p=0.7429
+   fall     paired diff +0.031 [-0.023,+0.086] McNemar p=0.3877 (discordant 8/4);  unpaired diff +0.025 (0.044 -> 0.069) z-test p=0.3952
+   timeout  paired diff -0.039 [-0.109,+0.023] McNemar p=0.3593 (discordant 7/12);  unpaired diff -0.011 (0.088 -> 0.077) z-test p=0.7591
+   steps-to-goal (successes) Mann-Whitney p=0.1057
+-- fbs32_lam05 vs fbs32: paired episodes n=130; unpaired n=130 vs 142 (common runs, common step window)
+   success  paired diff -0.062 [-0.115,-0.008] McNemar p=0.0574 (discordant 3/11);  unpaired diff -0.069 (0.923 -> 0.854) z-test p=0.0709
+   fall     paired diff +0.015 [-0.015,+0.046] McNemar p=0.6250 (discordant 3/1);  unpaired diff +0.013 (0.056 -> 0.069) z-test p=0.6608
+   timeout  paired diff +0.046 [+0.000,+0.092] McNemar p=0.1094 (discordant 8/2);  unpaired diff +0.056 (0.021 -> 0.077) z-test p=0.0312
+   steps-to-goal (successes) Mann-Whitney p=0.1558
 
 Robustness: length-bias-free subset (only episodes that started at or before step total_steps-120, so every one finishes inside the window); unpaired two-proportion z tests, bootstrap CI as above
-ol32           eps= 531 success 0.751 [0.716,0.789] fall 0.070 [0.047,0.092] timeout 0.179 [0.147,0.213]
-ol36           eps= 535 success 0.781 [0.744,0.815] fall 0.079 [0.056,0.103] timeout 0.140 [0.112,0.172]
-fbs32          eps= 635 success 0.890 [0.865,0.913] fall 0.050 [0.035,0.068] timeout 0.060 [0.043,0.079]
-   ol36 vs ol32 (n=535 vs 531): success +0.030 (p=0.2487); fall +0.009 (p=0.5823); timeout -0.039 (p=0.0843)
-   fbs32 vs ol32 (n=635 vs 531): success +0.138 (p=0.0000); fall -0.019 (p=0.1645); timeout -0.119 (p=0.0000)
-   fbs32 vs ol36 (n=635 vs 535): success +0.108 (p=0.0000); fall -0.028 (p=0.0491); timeout -0.080 (p=0.0000)
+ol32           eps= 512 success 0.746 [0.709,0.783] fall 0.066 [0.047,0.090] timeout 0.188 [0.158,0.221]
+ol36           eps= 516 success 0.779 [0.744,0.816] fall 0.074 [0.052,0.097] timeout 0.147 [0.116,0.180]
+fbs32          eps= 586 success 0.882 [0.853,0.908] fall 0.053 [0.036,0.072] timeout 0.065 [0.046,0.084]
+fbs32_lam05    eps=  84 success 0.845 [0.762,0.917] fall 0.036 [0.000,0.083] timeout 0.119 [0.060,0.190]
+   ol36 vs ol32 (n=516 vs 512): success +0.033 (p=0.2140); fall +0.007 (p=0.6494); timeout -0.040 (p=0.0841)
+   fbs32 vs ol32 (n=586 vs 512): success +0.136 (p=0.0000); fall -0.014 (p=0.3442); timeout -0.123 (p=0.0000)
+   fbs32_lam05 vs ol32 (n=84 vs 78): success +0.127 (p=0.0492); fall -0.054 (p=0.1534); timeout -0.073 (p=0.1972)
+   fbs32 vs ol36 (n=586 vs 516): success +0.103 (p=0.0000); fall -0.021 (p=0.1561); timeout -0.082 (p=0.0000)
+   fbs32_lam05 vs ol36 (n=84 vs 83): success +0.014 (p=0.8071); fall -0.012 (p=0.6874); timeout -0.001 (p=0.9772)
+   fbs32_lam05 vs fbs32 (n=84 vs 92): success -0.079 (p=0.1005); fall -0.008 (p=0.7924); timeout +0.086 (p=0.0285)

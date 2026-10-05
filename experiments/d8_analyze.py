@@ -10,14 +10,15 @@ from scipy import stats
 R = np.random.default_rng(12345); B = 4000
 files = sorted(glob.glob('results/d8/*_m*_e*.json'))
 runs = collections.defaultdict(dict)        # arm -> (m,e) -> record list
-meta = {}
+meta = {}; RT = {}
+MAIN = ('ol32', 'ol36', 'fbs32')
 for f in files:
     mm = re.match(r'results/d8/(.+)_m(\d)_e(\d+)\.json', f)
     if not mm: continue
     arm, m, e = mm.group(1), int(mm.group(2)), int(mm.group(3))
     d = json.load(open(f)); runs[arm][(m, e)] = {(s, j): (o, st) for s, j, o, st in d['records']}
     meta.setdefault(arm, dict(ps=d['particle_steps_per_env_step'], sec=[], args=d['args'], K=[]))
-    meta[arm]['sec'].append(d['sec'])
+    meta[arm]['sec'].append(d['sec']); RT[(arm, m, e)] = d['args']['total_steps']; meta[arm]['steps'] = meta[arm].get('steps', 0) + d['args']['total_steps']
     if d.get('K_mean'): meta[arm]['K'].append(d['K_mean'])
 
 def ends(r):
@@ -33,8 +34,8 @@ def pooled(arm, keys=None, T=None, start_cut=False):
     for k, r in runs[arm].items():
         if keys is not None and k not in keys: continue
         en = ends(r) if (T is not None or start_cut) else None
-        Tk = meta[arm]['args']['total_steps'] if T is None else T
-        out += [(k, o, st) for (sj, (o, st)) in r.items() if (T is None or en[sj] <= T) and (not start_cut or en[sj] - st <= Tk - meta[arm]['args']['ep_len'])]
+        Tk = RT[(arm, k[0], k[1])] if T is None else min(T, RT[(arm, k[0], k[1])])
+        out += [(k, o, st) for (sj, (o, st)) in r.items() if (T is None or en[sj] <= Tk) and (not start_cut or en[sj] - st <= Tk - 120)]
     return out
 
 def boot_rates(arm):
@@ -87,10 +88,16 @@ def paired(a, b):
         res[name] = (diff, *np.percentile(bs, [2.5, 97.5]), p, n01, n10)
     return res
 
+def common(a, b):
+    """main arms: all runs of each arm, own windows; otherwise common runs and the shorter window"""
+    if a in MAIN and b in MAIN: return None, None
+    keys = set(runs[a]) & set(runs[b])
+    return keys, min(max(RT[(a, *k)] for k in keys), max(RT[(b, *k)] for k in keys))
+
 def unpaired(a, b):
     """b minus a; the arm with more runs / steps is restricted to the other's runs and step window"""
     res = {}
-    keys = set(runs[a]) & set(runs[b]); T = min(meta[a]['args']['total_steps'], meta[b]['args']['total_steps'])
+    keys, T = common(a, b)
     pa, pb = pooled(a, keys, T), pooled(b, keys, T)
     res['n'] = (len(pa), len(pb))
     for i, name in enumerate(('success', 'fall', 'timeout')):
@@ -118,10 +125,11 @@ for arm in order:
                   ci_timeout=[ci[0][2], ci[1][2]], ci_median_steps=[ci[0][3], ci[1][3]], particle_steps_per_env_step=meta[arm]['ps'], K_mean=np.mean(meta[arm]['K'], 0).tolist() if meta[arm]['K'] else None)
 L.append('')
 L.append('Comparisons (difference = arm minus baseline; paired = matched (model seed, eval seed, slot, episode idx); McNemar exact p)')
-for base in ['ol32', 'ol36']:
+for base in ['ol32', 'ol36', 'fbs32']:
     for arm in order:
         if arm == base or base not in runs: continue
         if base == 'ol36' and arm == 'ol32': continue
+        if base == 'fbs32' and arm in MAIN: continue
         P = paired(base, arm); U = unpaired(base, arm)
         L.append(f"-- {arm} vs {base}: paired episodes n={P['n']}; unpaired n={U['n'][1]} vs {U['n'][0]} (common runs, common step window)")
         for name in ('success', 'fall', 'timeout'):
@@ -138,10 +146,10 @@ for arm in order:
     ci = np.percentile(bs, [2.5, 97.5], axis=0)
     L.append(f"{arm:14s} eps={n:4d} " + ' '.join(f"{nm} {x[nm].mean():.3f} [{ci[0][i]:.3f},{ci[1][i]:.3f}]" for i, nm in enumerate(x)))
     J[arm]['startcut'] = dict(n=n, **{nm: float(x[nm].mean()) for nm in x})
-for base in ['ol32', 'ol36']:
+for base in ['ol32', 'ol36', 'fbs32']:
     for arm in order:
-        if arm == base or base not in runs or (base == 'ol36' and arm == 'ol32'): continue
-        keys = set(runs[arm]) & set(runs[base]); T = min(meta[arm]['args']['total_steps'], meta[base]['args']['total_steps'])
+        if arm == base or base not in runs or (base == 'ol36' and arm == 'ol32') or (base == 'fbs32' and arm in MAIN): continue
+        keys, T = common(base, arm)
         pa, pb = pooled(base, keys, T, True), pooled(arm, keys, T, True)
         out = []
         for nm in ('success', 'fall', 'timeout'):
