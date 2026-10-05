@@ -41,7 +41,7 @@ def eval_plan(pl, plan, gen):
 res = dict(args=vars(args), arms={})
 for arm in args.arms.split(','):
     check_budget(arm)
-    t0 = time.time(); Js, Fs, Os, Ch, Ss = [], [], [], [], []
+    t0 = time.time(); Js, Fs, Os, Ch, Ss, True_opt, Meter = [], [], [], [], [], [], []
     for r in range(args.reps):
         pl = Planner(arm, args.model, ckpt, overrides=dict(rho=args.rho))
         gen = torch.Generator().manual_seed(1000 * args.seed + 17 * r + 1)
@@ -50,13 +50,16 @@ for arm in args.arms.split(','):
         J, f = eval_plan(pl, plan, torch.Generator().manual_seed(555 + r))
         Js.append(J); Fs.append(f)
         sA = d['sA_best']
+        Jel, _ = eval_plan(pl, d['elite0'], torch.Generator().manual_seed(777 + r))
+        True_opt.append(Jel - sA)
+        if 'sB_of_Abest' in d: Meter.append(d['sB_of_Abest'] - sA)
         Ss.append(sA); Os.append(J - sA)
         if 'choice' in d: Ch.append(d['choice'].float())
         rows = pl.cnt['rows']
     Jm, Fm = torch.stack(Js).mean(0), torch.stack(Fs).mean(0)
     res['arms'][arm] = dict(J=Jm.tolist(), pfail=Fm.tolist(), J_mean=float(Jm.mean()), pfail_mean=float(Fm.mean()),
                             optimism_vs_Abest=float(torch.stack(Os).mean()), sA_best_mean=float(torch.stack(Ss).mean()),
-                            frac_choice_mean_plan=(float((torch.stack(Ch) == 0).float().mean()) if Ch else None),
+                            optimism_true_Abest=float(torch.stack(True_opt).mean()), optimism_meter=(float(torch.stack(Meter).mean()) if Meter else None), optimism_true_per_state=torch.stack(True_opt).mean(0).tolist(), optimism_meter_per_state=(torch.stack(Meter).mean(0).tolist() if Meter else None), frac_choice_mean_plan=(float((torch.stack(Ch) == 0).float().mean()) if Ch else None),
                             sec=time.time() - t0)
-    print(arm, {k: v for k, v in res['arms'][arm].items() if k not in ('J', 'pfail')}, flush=True)
+    print(arm, {k: v for k, v in res['arms'][arm].items() if k not in ('J', 'pfail') and 'per_state' not in k}, flush=True)
 os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True); json.dump(res, open(args.out, 'w'))

@@ -114,7 +114,7 @@ def cf_cem(model, obs0, goal, H, N, iters, MA, MB, noiseA, gen, noise_k, n_short
         mu = el.mean(1, keepdim=True)
         sd = el.std(1, keepdim=True).clamp_min(0.05)
     if decide == 'mean':
-        return (mu[:, 0], dict(sA_best=sv[:, 0])) if return_diag else mu[:, 0]
+        return (mu[:, 0], dict(sA_best=sv[:, 0], elite0=el[:, 0])) if return_diag else mu[:, 0]
     # ---- decision phase on a fresh fold
     cand = torch.cat([mu, el[:, :n_short]], 1) if short == 'mean+elites' else el[:, :n_short]
     uB = torch.randn(E, 1, MB, H, noise_k, device=dv, generator=gen)                     # fresh, common across S
@@ -130,5 +130,5 @@ def cf_cem(model, obs0, goal, H, N, iters, MA, MB, noiseA, gen, noise_k, n_short
         return plan
     # optimism diagnostic: fold-A score of the best elite (in-sample, selected on) versus its fold-B score
     off = 1 if short == 'mean+elites' else 0
-    diag = dict(choice=best, sA_best=sv[:, 0], sB_of_Abest=sB[:, off], sB_min=sB.min(1).values, sB_mu=sB[:, 0] if off else None)
+    diag = dict(elite0=el[:, 0], choice=best, sA_best=sv[:, 0], sB_of_Abest=sB[:, off], sB_min=sB.min(1).values, sB_mu=sB[:, 0] if off else None)
     return plan, diag

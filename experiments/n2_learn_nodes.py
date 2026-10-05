@@ -17,8 +17,8 @@ from selwm.d6_noise import NoiseSource
 from selwm.n2_model import active_direction, oa_design
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--S', type=int, default=48); ap.add_argument('--N', type=int, default=32); ap.add_argument('--Mref', type=int, default=512)
-ap.add_argument('--iters', type=int, default=250); ap.add_argument('--bs', type=int, default=6); ap.add_argument('--lr', type=float, default=0.05)
+ap.add_argument('--S', type=int, default=24); ap.add_argument('--N', type=int, default=32); ap.add_argument('--Mref', type=int, default=256)
+ap.add_argument('--iters', type=int, default=200); ap.add_argument('--bs', type=int, default=6); ap.add_argument('--lr', type=float, default=0.05)
 ap.add_argument('--model', type=int, default=0); ap.add_argument('--seed', type=int, default=9000)
 ap.add_argument('--out', default='results/n2/learned_nodes.pt'); ap.add_argument('--M', type=int, default=8); ap.add_argument('--H', type=int, default=10)
 args = ap.parse_args()
@@ -91,7 +91,7 @@ with torch.no_grad():
     base = np.mean([float(loss_batch(s, torch.arange(args.S))) for s in range(2)])
 print('initial (sign design) loss', base, flush=True)
 # hold out the last 12 scenarios of each regime for model selection
-tr = torch.arange(0, args.S - 12); va = torch.arange(args.S - 12, args.S)
+tr = torch.arange(0, args.S - 6); va = torch.arange(args.S - 6, args.S)
 best = (1e9, q.detach().clone())
 for it in range(args.iters):
     s = it % 2

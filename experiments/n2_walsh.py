@@ -12,6 +12,8 @@ sys.path.insert(0, '.')
 from selwm.stochnav import StochNav
 from selwm.jepa import JEPA, FailureAnchor, observe, LatentModel
 from selwm.n2_model import active_direction, oa_design
+from selwm.d6_model import CoupledLatentModel
+from selwm.d6_noise import NoiseSource
 import importlib.util
 spec = importlib.util.spec_from_file_location('h', 'experiments/n2_rank_helpers.py'); Hh = importlib.util.module_from_spec(spec); spec.loader.exec_module(Hh)
 
@@ -64,6 +66,20 @@ for regime in ('wide', 'local'):
                 acc = acc + ((z - zg[s]) ** 2).sum(-1) / H
                 fl = torch.maximum(fl, (((z - anchor.z) ** 2).sum(-1) < anchor.tau).float())
             G[s] = (((z - zg[s]) ** 2).sum(-1) + acc) / scale + 3.0 * fl
+    # Gaussian-noise reference (sobol80, anti, independent) and agreement with the exact binary-path expectation
+    ref_model = CoupledLatentModel(mem, variant, noise=NoiseSource(gen_kind='sobol80', anti=True, share=False), **kw)
+    genr = torch.Generator().manual_seed(4242); cs = []
+    for i in range(0, args.S, 2):
+        cs.append(ref_model.cost(ref_model.rollout(z0[i:i + 2], acts[i:i + 2], 512, genr, zg[i:i + 2]), zg[i:i + 2]).mean(-1))
+    refc = torch.cat(cs)
+    Gm = G.mean(-1)                                                              # exact expectation under the binary reading (p = 1/2)
+    def rk(x): return x.argsort(-1).argsort(-1).float()
+    def cr(x, y):
+        x = x - x.mean(-1, keepdim=True); y = y - y.mean(-1, keepdim=True); return (x * y).sum(-1) / (x.norm(dim=-1) * y.norm(dim=-1) + 1e-12)
+    binary_vs_ref = dict(spearman=float(cr(rk(Gm), rk(refc)).mean()), pearson=float(cr(Gm, refc).mean()),
+                         rmse_centred=float(((Gm - Gm.mean(-1, keepdim=True)) - (refc - refc.mean(-1, keepdim=True))).pow(2).mean().sqrt()),
+                         top1_regret=float((refc.gather(1, Gm.argmin(-1)[:, None])[:, 0] - refc.min(-1).values).mean()),
+                         ref_sd_across_cands=float(refc.std(-1).mean()))
     # Walsh spectra; bit ordering: index i has bits b_0 (MSB)...b_{H-1}; eps_t = -1 if bit t = 0 else +1; chi_S (S bitmask over the same bits)
     # the transform above is the standard Hadamard transform whose characters are (-1)^{popcount(i & S)}; for our eps coding that equals chi_S(eps) up to sign (-1)^{|S|}
     W = walsh(G)                                                                 # (S,N,P)
@@ -104,6 +120,6 @@ for regime in ('wide', 'local'):
         alias_oa_by_order=A_oa.tolist(),
         pred_rmse_diff=dict(iid=pred_rmse(Ed, A_iid), anti=pred_rmse(Ed, A_anti), oa=pred_rmse(Ed, A_oa)),
         pred_rmse_g=dict(iid=pred_rmse(Eg, A_iid), anti=pred_rmse(Eg, A_anti), oa=pred_rmse(Eg, A_oa)),
-        mean_cost=float(G.mean()), fail_sd=None)
+        mean_cost=float(G.mean()), binary_vs_gaussian_ref=binary_vs_ref)
     print(regime, json.dumps({k: (np.round(v, 4).tolist() if isinstance(v, list) else v) for k, v in res[regime].items()}), f'{time.time() - t0:.0f}s', flush=True)
 json.dump(res, open(args.out, 'w'), indent=1)
