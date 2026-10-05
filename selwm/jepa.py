@@ -136,8 +136,11 @@ class LatentModel:
         x = self.render(p, self.variant, fell)
         return self.m.encode(x)
 
-    @torch.no_grad()
     def rollout(self, z0, acts, M, gen, goal=None):
+        with torch.no_grad(), torch.autocast(device_type='cuda', dtype=torch.float16, enabled=z0.is_cuda):
+            return self._rollout(z0, acts, M, gen, goal).float()
+
+    def _rollout(self, z0, acts, M, gen, goal=None):
         E, N, H, A = acts.shape
         det = (not self.stochastic) or self.m.kind == 'det'
         Me = 1 if det else M
