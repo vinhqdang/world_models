@@ -24,6 +24,8 @@ ap.add_argument('--total_steps', type=int, default=400); ap.add_argument('--ep_l
 ap.add_argument('--lam', type=float, default=0.0); ap.add_argument('--tail', type=float, default=0.1)
 ap.add_argument('--shrink', type=int, default=0); ap.add_argument('--race', type=int, default=0); ap.add_argument('--crn', type=int, default=0)
 ap.add_argument('--control', type=float, default=-1, help='target failure rate delta (<0: off)'); ap.add_argument('--eta', type=float, default=0.05)
+ap.add_argument('--tta_gate', type=float, default=0.0, help='z-threshold of the drift gate (0 = always adapt)'); ap.add_argument('--tta_replay', type=float, default=0.0)
+ap.add_argument('--tta_params', default='all'); ap.add_argument('--tta_batch', type=int, default=256); ap.add_argument('--tta_window', type=int, default=25)
 ap.add_argument('--tta', default='', help='online predictor fine-tuning with the model-native loss: mse|nll|es'); ap.add_argument('--tta_lr', type=float, default=3e-4); ap.add_argument('--tta_steps', type=int, default=2)
 ap.add_argument('--adapt', type=int, default=0); ap.add_argument('--per_dim', type=int, default=0); ap.add_argument('--oracle_vec', default=''); ap.add_argument('--adapt_lr', type=float, default=0.03); ap.add_argument('--oracle_scale', type=float, default=0.0)
 ap.add_argument('--shift_at', type=int, default=-1); ap.add_argument('--shift_wind', type=float, default=0.10)
@@ -71,7 +73,28 @@ tta_opt, tta_buf = None, []
 if args.tta:
     base_model = lm.m if args.planner != 'ensemble' else None
     for p_ in base_model.pred.parameters(): p_.requires_grad_(True)
-    tta_opt = torch.optim.Adam(base_model.pred.parameters(), lr=args.tta_lr)
+    params = list(base_model.pred.parameters()) if args.tta_params == 'all' else list(base_model.pred.out.parameters())
+    for p_ in base_model.pred.parameters(): p_.requires_grad_(False)
+    for p_ in params: p_.requires_grad_(True)
+    tta_opt = torch.optim.Adam(params, lr=args.tta_lr)
+    import glob as _g
+    src = None
+    cand = sorted(_g.glob(f'runs/data_{args.variant}_300000_e0.25.npz'))
+    if cand and (args.tta_replay > 0 or args.tta_gate > 0):
+        _d = np.load(cand[0]); n_ = len(_d['P'])
+        sel = np.random.default_rng(0).choice(n_, 60000, replace=False)
+        src = [torch.tensor(_d[k][sel], dtype=torch.float32 if k in ('P', 'A', 'P2') else torch.bool, device=dev) for k in ['P', 'F', 'A', 'P2', 'F2']]
+    def src_batch(n):
+        i = torch.randint(0, len(src[0]), (n,), device=dev)
+        return (observe(src[0][i], src[1][i], args.variant, base_model.obs), src[2][i], observe(src[3][i], src[4][i], args.variant, base_model.obs))
+    gate_mu = gate_sd = None; win = []; gate_on = args.tta_gate <= 0
+    if args.tta_gate > 0:
+        with torch.no_grad():
+            ls_ = []
+            for _ in range(200):
+                b = src_batch(16); ls_.append(float(base_model.loss(b[0], b[1], b[2], M=8)[0]))
+        gate_mu, gate_sd = float(np.mean(ls_)), float(np.std(ls_))
+    gate_log = []
 ctrl = RiskController(args.control, args.eta, lam0=0.3) if args.control >= 0 else None
 
 env = StochNav(args.variant, args.E, 5000 + args.seed); env.reset()
@@ -111,11 +134,22 @@ for t in range(args.total_steps):
         o1 = observe(torch.tensor(env.p, dtype=torch.float32, device=dev)[alive_before], torch.tensor(env.fell, device=dev)[alive_before], args.variant, base_model.obs)
         ac = torch.tensor(act0, dtype=torch.float32, device=dev)[alive_before]
         tta_buf.append((o0, ac, o1)); tta_buf[:] = tta_buf[-200:]
-        for _ in range(args.tta_steps):
-            idx = np.random.randint(0, len(tta_buf), 8)
-            O0 = torch.cat([tta_buf[i][0] for i in idx]); AC = torch.cat([tta_buf[i][1] for i in idx]); O1 = torch.cat([tta_buf[i][2] for i in idx])
-            loss, _ = base_model.loss(O0, AC, O1, M=8)
-            tta_opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(base_model.pred.parameters(), 1.0); tta_opt.step()
+        if args.tta_gate > 0:
+            with torch.no_grad():
+                win.append(float(base_model.loss(o0[:16], ac[:16], o1[:16], M=8)[0])); win[:] = win[-args.tta_window:]
+            if len(win) >= args.tta_window:
+                z = (np.mean(win) - gate_mu) / (gate_sd / np.sqrt(len(win)))
+                gate_on = z > args.tta_gate if not gate_on else z > 0.5 * args.tta_gate
+                gate_log.append((t, float(z), bool(gate_on)))
+        if gate_on:
+            for _ in range(args.tta_steps):
+                idx = np.random.randint(0, len(tta_buf), 8)
+                O0 = torch.cat([tta_buf[i][0] for i in idx]); AC = torch.cat([tta_buf[i][1] for i in idx]); O1 = torch.cat([tta_buf[i][2] for i in idx])
+                if src is not None and args.tta_replay > 0:
+                    n_src = int(args.tta_replay * args.tta_batch)
+                    b = src_batch(n_src); O0 = torch.cat([O0, b[0]]); AC = torch.cat([AC, b[1]]); O1 = torch.cat([O1, b[2]])
+                loss, _ = base_model.loss(O0, AC, O1, M=8)
+                tta_opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(params, 1.0); tta_opt.step()
     s_hist.append(float(log_s.exp().detach().mean()) if log_s is not None else 1.0)
     if log_s is not None and log_s.numel() > 1: s_vec = log_s.exp().detach().tolist()
     done = env.fell | env.reached | (t_ep >= args.ep_len)
@@ -140,6 +174,8 @@ res = dict(args=vars(args), episodes=stats['done'], success=stats['success'] / n
            timeout_mean_xy=(np.mean(stats['to_pos'], 0).round(3).tolist() if stats.get('to_pos') else None),
            spread_scale_final=s_hist[-1], spread_vec_final=(s_vec if 's_vec' in globals() else None), spread_scale_mean_before=float(np.mean(s_hist[:max(1, args.shift_at)])) if s_hist else 1.0,
            spread_scale_mean_after=float(np.mean(s_hist[args.shift_at:])) if (args.shift_at >= 0 and len(s_hist) > args.shift_at) else None,
+           gate_first_on=(next((g[0] for g in gate_log if g[2]), None) if (args.tta and args.tta_gate > 0) else None),
+           gate_frac_on=(float(np.mean([g[2] for g in gate_log])) if (args.tta and args.tta_gate > 0 and gate_log) else None),
            lam_final=float(log_lam[-1]), lam_mean=float(np.mean(log_lam)), sec=time.time() - t0)
 print(json.dumps({k: v for k, v in res.items() if k != 'args'}))
 if args.out:
