@@ -1,0 +1,72 @@
+{
+ "T4a_variance_growth": {
+  "max_err": 0.006719952102003819,
+  "note": "relative error of exact variances",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T4b_LQG_ratio_H": {
+  "max_err": 0.005207377251751935,
+  "note": "relative MC error",
+  "tol": 0.04,
+  "ok": true
+ },
+ "T4b_cvar_monotone_in_offset": {
+  "max_err": 0.0,
+  "note": "increasing",
+  "tol": 0,
+  "ok": true
+ },
+ "T4b_entropic_H1": {
+  "max_err": 0.001048946399330814,
+  "note": "rel. error MC vs closed form (H=1)",
+  "tol": 0.02,
+  "ok": true
+ },
+ "T4c_barrier_MC_vs_grid": {
+  "max_err": 1.5077850934276908,
+  "note": "max |MC - grid value| in units of MC standard errors (grid discretisation bias included)",
+  "tol": 4.5,
+  "ok": true
+ },
+ "T4c_barrier_gap_positive": {
+  "max_err": 0.10847509456403866,
+  "note": "min over H>=2 of V_OL - V_CL (must be >0); gap(H=1)=-2.13e-08",
+  "tol": null,
+  "ok": true
+ },
+ "T4c_ystar_below_B": {
+  "max_err": 0.0,
+  "note": "y*=0.4749, q*=0.07271",
+  "ok": true
+ },
+ "T4c_marginal_exceedance": {
+  "max_err": 0.004411804915881556,
+  "note": "abs error exact vs MC",
+  "tol": 0.004,
+  "ok": false
+ },
+ "T4c_firstpassage_crossover": {
+  "max_err": 0.0,
+  "note": "FB<=OL for t<=20: True; at t=40 FB=0.719 vs OL=0.684",
+  "ok": true
+ },
+ "T5a_laplace_tails_MC": {
+  "max_err": 0.015629951532772284,
+  "note": "relative error of Laplace tail MC vs formula (B<=3 effectively)",
+  "tol": 0.03,
+  "ok": true
+ },
+ "T5b_decision_counterexample": {
+  "max_err": 0.0,
+  "note": "number of scales that fix both decisions (must be 0)",
+  "tol": 0,
+  "ok": true
+ },
+ "T5c_summary": {
+  "max_err": 0.0,
+  "note": "analytic",
+  "tol": 0,
+  "ok": true
+ }
+}

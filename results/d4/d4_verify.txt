@@ -1,0 +1,245 @@
+
+====================================================================================================
+T1  variance gap of mean-embedding planning
+====================================================================================================
+(a) E||Z-g||^2 = ||mu-g||^2 + tr Sigma  (d=4, random Gaussian and non-Gaussian laws)
+       law        exact           MC    rel.err
+     gauss     15.25631     15.25742   7.31e-05
+       exp      4.30609      4.30590   4.50e-05
+     gauss      9.01605      9.01626   2.31e-05
+       exp      7.22263      7.21819   6.14e-04
+     gauss     16.91176     16.91464   1.70e-04
+       exp     22.90899     22.91313   1.80e-04
+  -> [T1a_identity] max error = 6.143e-04  relative MC error, expect ~1e-3  (tolerance 0.008: PASS)
+
+(b) least-squares predictor (degree-7 Legendre basis) vs true conditional mean; skewed heteroscedastic noise
+        n   sup|m_hat-mu|   sup|med-mu|
+     1000          0.1392        0.2455
+    10000          0.0787        0.2455
+   100000          0.0303        0.2455
+  1000000          0.0081        0.2455
+  -> [T1b_mse_to_mean] max error = 8.108e-03  final sup error (approximation floor of the basis included); decreasing=True  (tolerance 0.05: PASS)
+
+(c) regret identity R = [b(a_d)-b(a*)] + [v(a_d)-v(a*)], bound R <= max v - min v; N=20 candidates, d=3
+trial    R exact  R via id.   bound dv  R<=dv      R_MC
+    0     0.0000     0.0000     4.5597   True   -0.0002
+    1     0.0000     0.0000     4.4519   True   -0.0018
+    2     3.0729     3.0729     4.3244   True    3.0740
+    3     0.0000     0.0000     3.5922   True   -0.0020
+    4     3.5590     3.5590     3.8624   True    3.5571
+    5     2.4757     2.4757     4.6381   True    2.4804
+    6     0.0000     0.0000     3.8886   True    0.0022
+    7     1.0949     1.0949     4.8566   True    1.0975
+    8     1.8847     1.8847     3.2170   True    1.8895
+    9     0.0000     0.0000     2.2846   True   -0.0003
+   10     1.9403     1.9403     3.7182   True    1.9345
+   11     0.6914     0.6914     4.2240   True    0.6915
+  -> [T1c_identity] max error = 4.441e-16  exact identity (machine precision)  (tolerance 1e-12: PASS)
+  -> [T1c_bound_violations] max error = 0.000e+00  number of violations of R<=dv (expect 0)  (tolerance 0: PASS)
+  -> [T1c_MC_regret] max error = 5.758e-03  abs error of MC regret vs exact  (tolerance 0.05: PASS)
+
+(d) tightness example: R = V - eps^2 (-> Delta_v = V as eps -> 0), ratio R/J* = (V-eps^2)/eps^2 -> inf
+       V      eps    R exact       R MC       R/J*
+    0.25     0.30     0.1600     0.1604        1.8
+    0.25     0.10     0.2400     0.2402       24.0
+    1.00     0.30     0.9100     0.9108       10.1
+    1.00     0.10     0.9900     0.9891       99.0
+    4.00     0.30     3.9100     3.9116       43.4
+    4.00     0.10     3.9900     3.9942      399.0
+   16.00     0.30    15.9100    15.9157      176.8
+   16.00     0.10    15.9900    16.0037     1599.0
+  -> [T1d_tightness] max error = 1.739e-03  relative error of MC regret vs V-eps^2  (tolerance 0.008: PASS)
+
+(e) failure-penalised cost: R(kappa) = s1^2 + kappa*p1 - eps^2  (p1 = P(Z>=B), mean of a1 outside failure set)
+   g=0.0, B=1.0, s1=0.6, eps=0.2, p1=0.04779
+   kappa    R exact       R MC  det. sees    true J1
+       0     0.3200     0.3197       0.00     0.3600
+       1     0.3678     0.3675       0.00     0.4078
+       5     0.5590     0.5585       0.00     0.5990
+      20     1.2758     1.2748       0.00     1.3158
+     100     5.0990     5.0954       0.00     5.1390
+     500    24.2152    24.1980       0.00    24.2552
+  -> [T1e_fail_penalty] max error = 7.511e-04  relative error  (tolerance 0.01: PASS)
+
+(f) CVaR_alpha of (Z-g)^2, Z~N(g,s^2): CVaR = s^2 c_alpha, c_alpha = 1 + z phi(z)/Phibar(z), z=Phi^-1((1+alpha)/2)
+  alpha  c_alpha exact   c_alpha MC   rel.err  quad ncx2(mu=0)
+   0.50        1.85735      1.85687  2.58e-04          1.85735
+   0.80        3.24910      3.24674  7.27e-04          3.24910
+   0.90        4.39286      4.38693  1.35e-03          4.39286
+   0.95        5.58201      5.57502  1.25e-03          5.58201
+   0.99        8.44917      8.43590  1.57e-03          8.44916
+  -> [T1f_cvar_closed_form] max error = 1.571e-03  MC (tail mean) vs closed form; quad column cross-checks  (tolerance 0.02: PASS)
+   CVaR regret of the deterministic planner: R_alpha = s^2 c_alpha - eps^2 (s=1, eps=0.3)
+  alpha  R_alpha exact   R_alpha MC   E-regret
+   0.50         1.7673       1.7669     0.9100
+   0.90         4.3029       4.2969     0.9100
+   0.99         8.3592       8.3459     0.9100
+  -> [T1f_cvar_regret] max error = 1.587e-03  relative error  (tolerance 0.02: PASS)
+  -> [T1f_cvar_bounds] max error = 0.000e+00  E C <= CVaR_alpha <= E C/(1-alpha) on noncentral chi2 grid  (tolerance 0: PASS)
+   [t1 took 7.6s]
+
+====================================================================================================
+T2  tail blindness amplified by selection
+====================================================================================================
+kappa=10.0, c_s-c_r=1.0, theta=0.1, selection rule: risky chosen iff min_i J_hat_i <= c_s (ties to risky); reps=200000
+  M     p  k*   N_r   P exact      P MC  z-score  excess exact  excess MC  optimism exact  optimism MC
+  4  0.20   0     1   0.40960   0.40880    -0.73       0.40960    0.40880         2.00000      2.00320
+  4  0.20   0    16   0.99978   0.99981     0.70       0.99978    0.99981         0.00054      0.00049
+  4  0.20   0   256   1.00000   1.00000     0.00       1.00000    1.00000         0.00000      0.00000
+  4  0.40   0     1   0.12960   0.12862    -1.31       0.38880    0.38584         4.00000      4.00847
+  4  0.40   0    16   0.89148   0.89211     0.90       2.67445    2.67632         0.27138      0.26976
+  4  0.40   0   256   1.00000   1.00000     0.00       3.00000    3.00000         0.00000      0.00000
+  8  0.20   0     1   0.16777   0.16906     1.54       0.16777    0.16905         2.00000      1.99484
+  8  0.20   0    16   0.94705   0.94651    -1.08       0.94705    0.94651         0.06621      0.06688
+  8  0.20   0   256   1.00000   1.00000     0.00       1.00000    1.00000         0.00000      0.00000
+  8  0.40   0     1   0.01680   0.01668    -0.39       0.05039    0.05005         4.00000      3.99890
+  8  0.40   0    16   0.23740   0.23803     0.67       0.71220    0.71410         1.16289      1.16401
+  8  0.40   0   256   0.98692   0.98674    -0.69       2.96075    2.96022         0.01636      0.01657
+ 16  0.20   1     1   0.14074   0.14072    -0.02       0.14074    0.14072         2.00000      2.00093
+ 16  0.20   1    16   0.91169   0.91067    -1.61       0.91169    0.91067         0.45161      0.45127
+ 16  0.20   1   256   1.00000   1.00000     0.00       1.00000    1.00000         0.00042      0.00045
+ 16  0.40   1     1   0.00329   0.00351     1.71       0.00987    0.01053         4.00000      4.00214
+ 16  0.40   1    16   0.05138   0.05157     0.38       0.15414    0.15471         1.92752      1.92589
+ 16  0.40   1   256   0.57000   0.57077     0.70       1.70999    1.71231         0.85567      0.85574
+ 32  0.20   3     1   0.09309   0.09390     1.23       0.09309    0.09390         2.00000      1.99972
+ 32  0.20   3    16   0.79059   0.79041    -0.19       0.79059    0.79042         0.84767      0.84785
+ 32  0.20   3   256   1.00000   1.00000     0.00       1.00000    1.00000         0.30522      0.30471
+ 32  0.40   3     1   0.00014   0.00017     1.29       0.00041    0.00051         4.00000      4.00216
+ 32  0.40   3    16   0.00218   0.00225     0.64       0.00653    0.00673         2.50941      2.50866
+ 32  0.40   3   256   0.03429   0.03474     1.11       0.10287    0.10422         1.68093      1.68152
+  -> [T2a_select_prob] max error = 1.283e-03  max |P_MC-P_exact|; max |z-score| = 1.98  (tolerance 0.006: PASS)
+  -> [T2a_monotone_in_Nr] max error = 0.000e+00  P nondecreasing in N_r on grid  (tolerance 0: PASS)
+  -> [T2b_excess_cost] max error = 2.955e-03  abs error of E[true cost]-c_s = P*kappa*(p-theta)  (tolerance 0.03: PASS)
+  -> [T2b_winner_curse] max error = 8.475e-03  abs error of E[min J_hat] formula  (tolerance 0.02: PASS)
+
+Limit N_r -> inf: P -> 1, excess -> kappa(p-theta); estimated cost -> c_r (optimism gap -> kappa p)
+   M=8, p=0.3, F=0.05765; N_r needed for P>=0.99:  exact 78,  ln(1/delta)/F approx 79.9
+   N_r=    10: P=0.447755, excess=0.89551 (limit 2.000), E[min J_hat]=0.75629
+   N_r=   100: P=0.997362, excess=1.99472 (limit 2.000), E[min J_hat]=0.00330
+   N_r=  1000: P=1.000000, excess=2.00000 (limit 2.000), E[min J_hat]=0.00000
+   N_r= 10000: P=1.000000, excess=2.00000 (limit 2.000), E[min J_hat]=0.00000
+
+Hoeffding: P(select risky) <= N_r exp(-2 M (p-theta)^2); M needed for delta: M >= ln(N_r/delta)/(2 (p-theta)^2)
+   M    N_r     p    P exact      bound   ok
+   8      4  0.20  5.203e-01  1.000e+00 True
+   8     64  0.20  1.000e+00  1.000e+00 True
+  32      4  0.20  3.235e-01  1.000e+00 True
+  32     64  0.20  9.981e-01  1.000e+00 True
+ 128      4  0.20  3.640e-03  3.092e-01 True
+ 128     64  0.20  5.668e-02  1.000e+00 True
+   8      4  0.40  6.551e-02  9.477e-01 True
+   8     64  0.40  6.618e-01  1.000e+00 True
+  32      4  0.40  5.450e-04  1.260e-02 True
+  32     64  0.40  8.685e-03  2.017e-01 True
+ 128      4  0.40  3.464e-14  3.944e-10 True
+ 128     64  0.40  5.542e-13  6.310e-09 True
+  -> [T2c_hoeffding_violations] max error = 0.000e+00  number of violated bounds (expect 0)  (tolerance 0: PASS)
+
+Two-stage fresh-sample verification (stage 1: N_r candidates, M particles, keep top-K; stage 2: M2 fresh particles).
+  risk (with safe fallback in final comparison) = 1-(1-F2)^K, independent of N_r;  pooled variant (safe ranked in stage 1, no fallback in S):
+  risk = P(R1>=K) + P(R1<K)(1-(1-F2)^(K-1)),  R1 ~ Bin(N_r, F)
+  N_r   K   M2    naive  fallback exact  fallback MC  pooled exact  pooled MC
+   16   1    8   0.2374         0.01680      0.01730       0.23740    0.23762
+   16   1   32   0.2374         0.00014      0.00012       0.23740    0.23742
+   16   4    8   0.2374         0.06551      0.06370       0.04966    0.04953
+   16   4   32   0.2374         0.00055      0.00037       0.00053    0.00058
+  256   1    8   0.9869         0.01680      0.01678       0.98692    0.98670
+  256   1   32   0.9869         0.00014      0.00010       0.98692    0.98745
+  256   4    8   0.9869         0.06551      0.06508       0.64338    0.64430
+  256   4   32   0.9869         0.00055      0.00040       0.62495    0.62558
+  -> [T2d_verification_fallback] max error = 1.811e-03  abs error exact vs MC  (tolerance 0.015: PASS)
+  -> [T2d_verification_pooled] max error = 9.158e-04  abs error exact vs MC  (tolerance 0.015: PASS)
+
+Unbiasedness conditional on selection (N_r=64, M=8, p=0.4): E[J_hat_stage1 | selected] vs E[J_hat_fresh | selected] vs true J
+   stage-1 estimate of selected: 0.4253   fresh estimate: 3.9964   truth: 4.0000
+  -> [T2e_fresh_unbiased] max error = 3.600e-03  stage-1 biased by -3.575  (tolerance 0.03: PASS)
+
+Shrinkage (normal-normal empirical Bayes, B(M) = tau^2/(tau^2+sigma^2/M)); ranking invariance with equal M
+   equal M: fraction of trials where argmin changes = 0.000000
+  -> [T2f_shrink_equalM] max error = 0.000e+00  fraction argmin changed (expect 0)  (tolerance 0: PASS)
+   equal M but candidate-specific variances: fraction changed = 0.1965
+   unequal M (racing-like): fraction changed = 0.3922
+   explicit example: raw (0.9 @M=4, 1.0 @M=64) -> argmin 1; shrunk (1.4500, 1.0588) -> argmin 2
+  -> [T2f_shrink_unequalM_example] max error = 0.000e+00  unequal-M ranking flip exhibited; random flip fraction 0.392  (tolerance 0: PASS)
+   [t2 took 65.7s]
+
+====================================================================================================
+T3  energy score
+====================================================================================================
+(a) closed-form ES(N(m,s^2), y) vs Monte-Carlo ES
+   m=0, s=1, y=0.3: exact 0.26933  MC 0.26927
+   m=1, s=2, y=-1.0: exact 1.20488  MC 1.20544
+   m=-0.5, s=0.4, y=0.9: exact 1.17437  MC 1.17406
+  -> [T3a_es_closed_form] max error = 5.610e-04  abs error  (tolerance 0.005: PASS)
+
+(b) strict propriety (Gaussian family): E_{Y~N(0,1)} ES(N(m,s^2),Y) over a grid; minimiser should be (0,1)
+   argmin over grid: m=0.000, s=1.000 (true 0, 1); minimum value 0.56419 (= E|Y|... entropy-like: (1-1/sqrt(pi)... ) = 0.56419)
+  -> [T3b_propriety_grid] max error = 0.000e+00  distance of grid minimiser from truth  (tolerance 0.03: PASS)
+
+(c) identity E_{Y~Q}[ES(P,Y)-ES(Q,Y)] = (1/2) D_E(P,Q) with D_E = 2 int (F_P-F_Q)^2 dx (1-D); P=N(0,1), Q=Laplace(0,b)
+     b   LHS (MC)  RHS (quad)
+ 0.500    0.02664     0.02680
+ 0.707    0.00553     0.00571
+ 1.000    0.00697     0.00685
+  -> [T3c_energy_distance_identity] max error = 1.822e-04  abs error  (tolerance 0.005: PASS)
+
+(d) deterministic predictor trained with ES (= absolute error) estimates the median, MSE the mean (Exp(1) noise: mean 1, median ln2)
+   argmin MSE = 1.000 (mean 1), argmin ES(point mass) = 0.700 (median 0.693)
+  -> [T3d_point_mass_median] max error = 6.853e-03  grid resolution 0.02  (tolerance 0.05: PASS)
+
+(e) same predictive law, different noise map: Var of CRN estimate of cost difference.  Z1=mu1+s u,  Z2=mu2 + eps s u (eps=+1 or -1), c=(z-g)^2
+    exact Var(c1-c2) = 4 s^2 (m1 - eps m2)^2  with m_i = mu_i-g;  marginal laws of Z1,Z2 identical for eps=+-1
+   eps=+1: Var exact 0.17640, MC 0.17635;  mean(c2) = 0.73965 (law-determined: 0.74000)
+   eps=-1: Var exact 3.31240, MC 3.31154;  mean(c2) = 0.74010 (law-determined: 0.74000)
+  -> [T3e_crn_variance] max error = 2.592e-04  relative error  (tolerance 0.02: PASS)
+
+(f) consistency: Y = beta x + (s2+s3|x|) eps; model f_theta(x,u) = th1 x + (th2 + th3|x|) u, u~N(0,1); empirical ES with m=8 draws per sample
+    identified set Theta* = {(b,s2,s3), (b,-s2,-s3)}; report median dist(theta_hat, Theta*) over replications
+      n  median dist   max dist   example theta_hat
+    200       0.1505     0.4851   [0.711 0.525 0.856]
+    800       0.0897     0.2529   [ 1.081 -0.524 -0.779]
+   3200       0.0424     0.0620   [1.013 0.479 0.802]
+  12800       0.0231     0.0364   [ 1.016 -0.51  -0.776]
+  -> [T3f_consistency] max error = 2.314e-02  median dist at largest n; decreasing: True; first=0.151  (tolerance 0.1: PASS)
+   [t3 took 12.5s]
+
+====================================================================================================
+T4  open loop vs closed loop under process noise
+====================================================================================================
+(a) x_{t+1} = x_t + u_t + sigma w_t, sigma=0.5, x_0=0, g=0.  Var(x_t): open loop vs feedback u_t=-k x_t
+  t   OL exact      OL MC  k=0.3 exact   k=0.3 MC  k=1 exact    k=1 MC  stationary(k=.3)
+  1     0.2500     0.2494       0.2500     0.2494     0.2500    0.2494            0.4902
+  2     0.5000     0.4993       0.3725     0.3721     0.2500    0.2498            0.4902
+  4     1.0000     1.0001       0.4619     0.4625     0.2500    0.2502            0.4902
+  8     2.0000     1.9962       0.4886     0.4883     0.2500    0.2500            0.4902
+ 16     4.0000     3.9939       0.4902     0.4909     0.2500    0.2497            0.4902
+ 32     8.0000     7.9981       0.4902     0.4911     0.2500    0.2497            0.4902
+  -> [T4a_variance_growth] max error = 2.206e-03  relative error of exact variances  (tolerance 0.02: PASS)
+
+(b) terminal cost (x_H-g)^2, g=0: optimal value, OL (best deterministic plan) vs CL (deadbeat last step).  Predicted ratio = H
+  H      crit   OL exact      OL MC   CL exact      CL MC   ratio
+  1         E     0.2500     0.2500     0.2500     0.2498    1.00
+  1    CVaR.9     1.0982     1.0993     1.0982     1.0991    1.00
+  1   CVaR.99     2.1123     2.1186     2.1123     2.1139    1.00
+  2         E     0.5000     0.4996     0.2500     0.2503    2.00
+  2    CVaR.9     2.1964     2.1953     1.0982     1.0992    2.00
+  2   CVaR.99     4.2246     4.2240     2.1123     2.1124    2.00
+  4         E     1.0000     0.9997     0.2500     0.2503    4.00
+  4    CVaR.9     4.3929     4.3950     1.0982     1.0988    4.00
+  4   CVaR.99     8.4492     8.4533     2.1123     2.1117    4.00
+  8         E     2.0000     1.9958     0.2500     0.2505    8.00
+  8    CVaR.9     8.7857     8.7573     1.0982     1.0999    8.00
+  8   CVaR.99    16.8983    16.7853     2.1123     2.1151    8.00
+  -> [T4b_LQG_ratio_H] max error = 6.687e-03  relative MC error  (tolerance 0.04: PASS)
+   OL with mean offset m: E=(m^2+H sig^2); CVaR is increasing in |m| (checked on a grid, H=4, alpha=0.9)
+   CVaR_0.9 at m=0,.25,.5,1,2: 4.3929, 4.6616, 5.4048, 7.7659, 14.2690
+  -> [T4b_cvar_monotone_in_offset] max error = 0.000e+00  increasing  (tolerance 0: PASS)
+   entropic risk (1/theta) ln E exp(theta C), theta=0.4: OL finite iff 2 theta H sig^2<1: H=1: 0.2789, H=2: 0.6385 H=3: 1.1454 H=4: 2.0118 H=5: inf
+  -> [T4b_entropic_H1] max error = 2.012e-03  rel. error MC vs closed form (H=1)  (tolerance 0.02: PASS)
+
+(c) absorbing boundary: x_{t+1} = x_t + u_t + sigma w, |u|<=U, absorbed (stopped) at x>=B.  Cost = (x_H-g)^2 + kappa 1[hit]  (x_H=B if absorbed)
+   x0=0.0, g=0.6, B=1.0, sigma=0.2, kappa=4.0, U=0.5, absorbed cost 4.160
+  H  V_CL (DP)  V_OL (opt)      gap  gap/V_CL    V_CL MC    V_OL MC   MC se  OL plan
+  1    0.07271     0.07271 -0.00000    -0.000    0.07199    0.07212 0.00062  [0.475]
+  2    0.07502     0.18349  0.10847     1.446    0.07538    0.18393 0.00109  [-0.13  0.5 ]
+  3    0.07519     0.29369  0.21850     2.906    0.07506    0.29638 0.00144  [-0.5    0.305  0.5  ]

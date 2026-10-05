@@ -11,6 +11,7 @@ sys.path.insert(0, '.')
 from selwm.stochnav import StochNav
 from selwm.jepa import JEPA, LatentModel, EnsembleLatent, FailureAnchor, observe, es_scale_loss
 from selwm.risk_plan import cem
+from selwm.d6_model import CoupledLatentModel, make_noise
 from selwm.noise_aware import NoiseAwareScorer, cem_raced, RiskController
 
 ap = argparse.ArgumentParser()
@@ -30,6 +31,7 @@ ap.add_argument('--tta_params', default='all'); ap.add_argument('--tta_batch', t
 ap.add_argument('--tta', default='', help='online predictor fine-tuning with the model-native loss: mse|nll|es'); ap.add_argument('--tta_lr', type=float, default=3e-4); ap.add_argument('--tta_steps', type=int, default=2)
 ap.add_argument('--adapt', type=int, default=0); ap.add_argument('--per_dim', type=int, default=0); ap.add_argument('--oracle_vec', default=''); ap.add_argument('--adapt_lr', type=float, default=0.03); ap.add_argument('--oracle_scale', type=float, default=0.0)
 ap.add_argument('--shift_at', type=int, default=-1); ap.add_argument('--shift_wind', type=float, default=0.10)
+ap.add_argument('--scheme', default='', help='d6 noise scheme name (selwm.d6_model.SCHEMES); empty = original LatentModel')
 ap.add_argument('--seed', type=int, default=0); ap.add_argument('--out', default=None)
 ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
 args = ap.parse_args()
@@ -57,8 +59,11 @@ if args.planner == 'ensemble':
 else:
     mem = load(args.ckpt)
     anchor = FailureAnchor(mem.encode, args.variant, mem.obs, device=dev) if args.failcost else None
-    lm = LatentModel(mem, args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn), stage_w=args.stage_w,
-                     anchor=anchor, kappa=args.kappa, scale=start_goal_scale(mem.encode, mem.obs))
+    _kw = dict(stochastic=(args.planner != 'mean'), stage_w=args.stage_w, anchor=anchor, kappa=args.kappa, scale=start_goal_scale(mem.encode, mem.obs))
+    if args.scheme:
+        lm = CoupledLatentModel(mem, args.variant, noise=make_noise(args.scheme), **_kw)
+    else:
+        lm = LatentModel(mem, args.variant, crn=bool(args.crn), **_kw)
 log_s = None
 if args.planner == 'risk' and (args.adapt or args.oracle_scale > 0 or args.oracle_vec):
     D = lm.m.pred.dim
@@ -102,6 +107,7 @@ ctrl = RiskController(args.control, args.eta, lam0=0.3) if args.control >= 0 els
 env = StochNav(args.variant, args.E, 5000 + args.seed); env.reset()
 gen = torch.Generator(device=dev).manual_seed(args.seed)
 t_ep = np.zeros(args.E, int)
+prev_reset = np.zeros(args.E, bool)
 stats = dict(done=0, fall=0, success=0, timeout=0, steps_to_goal=[])
 phase_stats = {}
 log_lam = []
@@ -114,6 +120,8 @@ for t in range(args.total_steps):
     p = torch.tensor(env.p, dtype=torch.float32, device=dev); fell = torch.tensor(env.fell, device=dev)
     z0 = lm.obs_to_latent(p, fell); zg = lm.obs_to_latent(torch.tensor(env.goal, dtype=torch.float32, device=dev))
     lam = ctrl.lam if ctrl else args.lam
+    if hasattr(lm, 'begin_replan'):
+        lm.begin_replan(reset_mask=prev_reset)
     if args.planner == 'mean':
         plan = cem(lm, z0, zg, args.H, args.N, 1, iters=args.iters, risk='expected', gen=gen)
     elif args.race:
@@ -175,6 +183,8 @@ for t in range(args.total_steps):
         if ctrl: ctrl.update(failed)
         s, g = env.sample_start_goal(int(done.sum()))
         env.p[done] = s; env.goal[done] = g; env.fell[done] = False; env.reached[done] = False; t_ep[done] = 0
+        prev_reset = done.copy()
+    if not done.any(): prev_reset = np.zeros(args.E, bool)
     log_lam.append(lam)
 n = max(1, stats['done'])
 res = dict(args=vars(args), episodes=stats['done'], success=stats['success'] / n, fall=stats['fall'] / n, timeout=stats['timeout'] / n,

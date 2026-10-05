@@ -96,7 +96,7 @@ if args.tta:
             for _ in range(200):
                 b = src_batch(16); ls_.append(base_model.loss(b[0], b[1], b[2], M=8)[1]['pred'])
         gate_mu, gate_sd = float(np.mean(ls_)), float(np.std(ls_))
-    gate_log = []; loss_trace = []
+    gate_log = []
 ctrl = RiskController(args.control, args.eta, lam0=0.3) if args.control >= 0 else None
 
 env = StochNav(args.variant, args.E, 5000 + args.seed); env.reset()
@@ -136,10 +136,9 @@ for t in range(args.total_steps):
         o1 = observe(torch.tensor(env.p, dtype=torch.float32, device=dev)[alive_before], torch.tensor(env.fell, device=dev)[alive_before], args.variant, base_model.obs)
         ac = torch.tensor(act0, dtype=torch.float32, device=dev)[alive_before]
         tta_buf.append((o0, ac, o1)); tta_buf[:] = tta_buf[-args.tta_buflen:]
-        with torch.no_grad():
-            lo_ = base_model.loss(o0[:16], ac[:16], o1[:16], M=8)[1]['pred']
-        loss_trace.append(lo_)
         if args.tta_gate > 0:
+            with torch.no_grad():
+                lo_ = base_model.loss(o0[:16], ac[:16], o1[:16], M=8)[1]['pred']
             if gate_mu is None:
                 warm.append(lo_)
                 if len(warm) >= args.tta_warm: gate_mu, gate_sd = float(np.mean(warm)), float(np.std(warm))
@@ -188,7 +187,6 @@ res = dict(args=vars(args), episodes=stats['done'], success=stats['success'] / n
            gate_first_on_after_shift=(next((g[0] for g in gate_log if g[2] and g[0] >= args.shift_at), None) if (args.tta and args.tta_gate > 0) else None),
            gate_on_steps_before=(sum(1 for g in gate_log if g[2] and g[0] < args.shift_at) if (args.tta and args.tta_gate > 0) else None),
            gate_on_steps_after=(sum(1 for g in gate_log if g[2] and g[0] >= args.shift_at) if (args.tta and args.tta_gate > 0) else None),
-           gate_mu=(gate_mu if args.tta else None), gate_sd=(gate_sd if args.tta else None), loss_trace=(loss_trace if args.tta else None),
            gate_z_trace=([(g[0], round(g[1], 2), int(g[2])) for g in gate_log[::10]] if (args.tta and args.tta_gate > 0) else None),
            gate_frac_on=(float(np.mean([g[2] for g in gate_log])) if (args.tta and args.tta_gate > 0 and gate_log) else None),
            lam_final=float(log_lam[-1]), lam_mean=float(np.mean(log_lam)), sec=time.time() - t0)

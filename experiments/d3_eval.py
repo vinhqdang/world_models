@@ -12,6 +12,8 @@ from selwm.stochnav import StochNav
 from selwm.jepa import JEPA, LatentModel, EnsembleLatent, FailureAnchor, observe, es_scale_loss
 from selwm.risk_plan import cem
 from selwm.noise_aware import NoiseAwareScorer, cem_raced, RiskController
+from selwm.d3_fb import fb_cem
+from selwm.d3_latent import LatentFB
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--ckpt', required=True, help='checkpoint, or comma-separated checkpoints for --planner ensemble')
@@ -30,6 +32,7 @@ ap.add_argument('--tta_params', default='all'); ap.add_argument('--tta_batch', t
 ap.add_argument('--tta', default='', help='online predictor fine-tuning with the model-native loss: mse|nll|es'); ap.add_argument('--tta_lr', type=float, default=3e-4); ap.add_argument('--tta_steps', type=int, default=2)
 ap.add_argument('--adapt', type=int, default=0); ap.add_argument('--per_dim', type=int, default=0); ap.add_argument('--oracle_vec', default=''); ap.add_argument('--adapt_lr', type=float, default=0.03); ap.add_argument('--oracle_scale', type=float, default=0.0)
 ap.add_argument('--shift_at', type=int, default=-1); ap.add_argument('--shift_wind', type=float, default=0.10)
+ap.add_argument('--fb', type=int, default=0, help='1: feedback-aware CEM (nominal + gain)'); ap.add_argument('--kmode', default='const'); ap.add_argument('--kmax', type=float, default=7.5)
 ap.add_argument('--seed', type=int, default=0); ap.add_argument('--out', default=None)
 ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
 args = ap.parse_args()
@@ -57,7 +60,7 @@ if args.planner == 'ensemble':
 else:
     mem = load(args.ckpt)
     anchor = FailureAnchor(mem.encode, args.variant, mem.obs, device=dev) if args.failcost else None
-    lm = LatentModel(mem, args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn), stage_w=args.stage_w,
+    lm = LatentFB(mem, args.variant, stochastic=(args.planner != 'mean'), crn=bool(args.crn), stage_w=args.stage_w,
                      anchor=anchor, kappa=args.kappa, scale=start_goal_scale(mem.encode, mem.obs))
 log_s = None
 if args.planner == 'risk' and (args.adapt or args.oracle_scale > 0 or args.oracle_vec):
@@ -105,6 +108,7 @@ t_ep = np.zeros(args.E, int)
 stats = dict(done=0, fall=0, success=0, timeout=0, steps_to_goal=[])
 phase_stats = {}
 log_lam = []
+K_hist = []
 t0 = time.time()
 M_stages, keep = [4, 4, 8], [0.25, 0.125]
 for t in range(args.total_steps):
@@ -118,6 +122,9 @@ for t in range(args.total_steps):
         plan = cem(lm, z0, zg, args.H, args.N, 1, iters=args.iters, risk='expected', gen=gen)
     elif args.race:
         plan = cem_raced(lm, z0, zg, args.H, args.N, M_stages, keep, iters=args.iters, lam=lam, tail=args.tail, shrink=bool(args.shrink), gen=gen)
+    elif args.fb:
+        plan, Kc = fb_cem(lm, z0, zg, args.H, args.N, args.M, iters=args.iters, gen=gen, score_fn=NoiseAwareScorer(lam, args.tail, bool(args.shrink)), kmode=args.kmode, kmax=args.kmax)
+        K_hist.append(Kc.mean((0, 1)).tolist())
     else:
         plan = cem(lm, z0, zg, args.H, args.N, args.M, iters=args.iters, gen=gen, score_fn=NoiseAwareScorer(lam, args.tail, bool(args.shrink)))
     alive_before = ~(env.fell | env.reached)
@@ -191,7 +198,7 @@ res = dict(args=vars(args), episodes=stats['done'], success=stats['success'] / n
            gate_mu=(gate_mu if args.tta else None), gate_sd=(gate_sd if args.tta else None), loss_trace=(loss_trace if args.tta else None),
            gate_z_trace=([(g[0], round(g[1], 2), int(g[2])) for g in gate_log[::10]] if (args.tta and args.tta_gate > 0) else None),
            gate_frac_on=(float(np.mean([g[2] for g in gate_log])) if (args.tta and args.tta_gate > 0 and gate_log) else None),
-           lam_final=float(log_lam[-1]), lam_mean=float(np.mean(log_lam)), sec=time.time() - t0)
+           K_mean=(np.mean(K_hist, 0).tolist() if K_hist else None), lam_final=float(log_lam[-1]), lam_mean=float(np.mean(log_lam)), sec=time.time() - t0)
 print(json.dumps({k: v for k, v in res.items() if k != 'args'}))
 if args.out:
     os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True); json.dump(res, open(args.out, 'w'))
