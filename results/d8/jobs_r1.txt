@@ -1,0 +1,9 @@
+fbs32 0 100 600 --fb 1 --kmode step --kmax 7.5 --N 32
+ol32 0 100 600 --N 32
+ol36 0 100 600 --N 36
+fbs32 1 101 600 --fb 1 --kmode step --kmax 7.5 --N 32
+ol32 1 101 600 --N 32
+ol36 1 101 600 --N 36
+fbs32 2 102 600 --fb 1 --kmode step --kmax 7.5 --N 32
+ol32 2 102 600 --N 32
+ol36 2 102 600 --N 36

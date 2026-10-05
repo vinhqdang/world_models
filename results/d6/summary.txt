@@ -1,0 +1,14 @@
+crn_chain3                   seeds=[0, 1, 2] eps= 204 success=0.887 fall=0.029 timeout=0.083
+    seed 0: eps=70 success=0.900 fall=0.029 timeout=0.071
+    seed 1: eps=65 success=0.815 fall=0.046 timeout=0.138
+    seed 2: eps=69 success=0.942 fall=0.014 timeout=0.043
+crn                          seeds=[0, 1, 2] eps= 199 success=0.864 fall=0.030 timeout=0.106
+    seed 0: eps=70 success=0.871 fall=0.000 timeout=0.129
+    seed 1: eps=62 success=0.806 fall=0.065 timeout=0.129
+    seed 2: eps=67 success=0.910 fall=0.030 timeout=0.060
+crn_sobol_anti               seeds=[0] eps=  71 success=0.831 fall=0.014 timeout=0.155
+    seed 0: eps=71 success=0.831 fall=0.014 timeout=0.155
+BASELINE_indep(es_exp)       seeds=[0, 1, 2] eps= 191 success=0.827 fall=0.079 timeout=0.094
+    seed 0: eps=66 success=0.833 fall=0.091 timeout=0.076
+    seed 1: eps=65 success=0.815 fall=0.062 timeout=0.123
+    seed 2: eps=60 success=0.833 fall=0.083 timeout=0.083
