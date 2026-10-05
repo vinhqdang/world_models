@@ -1,0 +1,6 @@
+indep 0 500 340
+indep 1 501 340
+indep 2 502 340
+crn_chain3 0 500 340
+crn_chain3 1 501 340
+crn_chain3 2 502 340

@@ -1,0 +1,98 @@
+# N3 references (every arXiv id below was fetched through the arXiv API `id_list` on 2026-10-05 and the title matched; "FT" = full text read with pdftotext for the limitation passages)
+
+Format: id | first author | title (as returned by the API) | role in REPORT.md
+
+## World-model papers scanned for stated open problems (section 1 of REPORT.md)
+- 2603.19312 | Maes | LeWorldModel: Stable End-to-End Joint-Embedding Predictive Architecture from Pixels | FT; limitations: short horizons, offline data coverage, action labels
+- 2506.09985 | Assran | V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning | FT; error accumulation, search-space growth, image goals, camera sensitivity
+- 2509.24527 | Hafner | Training Agents Inside of Scalable World Models | FT (limitations passage); temporal consistency window, hallucinated structure
+- 2411.04983 | Zhou | DINO-WM: World Models on Pre-trained Visual Features enable Zero-shot Planning | FT; data coverage, action labels, hierarchical planning
+- 2502.14819 | Sobal | Learning from Reward-Free Offline Data: A Case for Planning with Latent Dynamics Models | FT; navigation only, 4x inference cost
+- 2512.24497 | Terver | What Drives Success in Physical Planning with Joint-Embedding Predictive World Models? | FT; deterministic predictor averages multimodal futures, no reward optimisation
+- 2310.16828 | Hansen | TD-MPC2: Scalable, Robust World Models for Continuous Control | listed only (limitations not extracted)
+- 2601.14354 | Huang | VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models | FT; unimodal Gaussian head stated as a limitation
+- 2605.15960 | Mondal Bhamidipaty | Imperfect World Models are Exploitable | FT; finite MDPs only, binary exploitation notion, no sufficient conditions
+- 2608.12959 | Singh | The Objective Is the Bottleneck: Latent World Models Encode What Their Planners Cannot Use | FT; one environment, one seed per checkpoint
+- 2609.39235 | Alrasheed | The Planning Limits of Latent World Models | FT; long tasks only when goal lies inside the imagined trajectory
+- 2609.24749 | Liu | D-JEPA: A Decision-Aligned Latent World Model | FT; no limitation passage found
+- 2606.15594 | Nath | Pixels to Proofs: Probabilistically-Safe Latent World Model Control via Parallel Conformal Robust MPC | FT; Push-T bottleneck from Euclidean latent goal distance
+- 2609.30036 | Liu | Aim Short to Reach Far: Your Frozen World Model Can Plan Better Than You Think | abstract/search; planner target rather than model is the limit
+- 2602.08968 | Maes | stable-worldmodel-v1: Reproducible World Modeling Research and Evaluation | benchmark infrastructure
+- 2607.23602 | Li | Action from Adjacent Set in Physical Space Outperforms the Best Prediction in World Models | proposal overgeneration (selection risk grows with pool size); ASAR
+- 2610.00921 | Obst | In CEM, a World Model Is Also a Proposal Mechanism | scoring errors change both decision and later proposals
+- 2606.15032 | Yu | How Should World Models Be Evaluated for Embodied Decision-Making? A Decision-Making-Centric Position | survey/position
+- 2609.34300 | Cao | When World Models Lie: Adaptive Safety Analysis Under Wrong Imaginations | ACI-based adaptive latent safety filter
+- 2609.15781 | Riano | When the World Lies: Backdoor Attacks on Latent World Models for Downstream Control | planner re-discovers attacker action (exploitation by optimisation)
+- 2608.12939 | An | Diagnosing JEPA World Models with Action-Conditioned Predictive Consistency | perturbation bound on planner cost
+- 2609.24745 | Yuan | Beyond Visual Quality: A Study of Test-Time Planning with World Action Models | oracle selection gap among sampled candidates
+- 2606.13092 | Wang | Certified World Models: Predictability Across Configuration, Horizon, and Resolution | certificates for equivariant latent WMs
+- 2606.24946 | Wang | Conformal Orbit-Valid Trust Horizons for Equivariant World Models | conformal trust horizon
+- 2607.01537 | Wang | Certified World Models as Sensing Clocks: Drift-Aware Deadlines for Active Perception | validity horizon as a sensing clock
+- 2608.18669 | Sommer | Reinforced Planning with Latent World Models | learned plan-update operator
+- 2602.00475 | Psenka | Parallel Stochastic Gradient-Based Planning for World Models | GRASP planner
+- 2601.00844 | Destrade | Value-guided action planning with JEPA world models | value-guided planning
+- 2605.07278 | Li | Predictive but Not Plannable: RC-aux for Latent World Models | reachability auxiliary objective, hard negatives
+- 2609.30264 | Qiu | AD-WM: Action-Discriminative World Models for Counterfactual Model Predictive Control | action-recovery regularisation
+- 2607.02403 | Seo | ACID: Action Consistency via Inverse Dynamics for Planning with World Models | cycle action consistency in planning cost
+- 2512.09929 | Agrawal | Closing the Train-Test Gap in World Models for Gradient-Based Planning | train-time data synthesis for planning
+- 2608.29998 | Vakalis | The Intervention Gap in Latent World Models | listed
+- 2609.37378 | Resani | Do-JEPA: From Masking to Intervention in Latent World Models | paired simulator rollouts that share state and noise
+- 2608.08982 | Ma | Twin Rollouts: Noise-Coupled Counterfactual Branching in Interactive Video World Models | noise-coupled counterfactual rollouts (generation, video)
+- 2607.05238 | Song | Branch-JEPA: Finite-Support Predictive Distributions for JEPA World Models | energy-score JEPA (already cited in paper)
+- 2609.35012 | Huh | Amortized Feedback Planning: Turning Model-Based Rollouts into Executable Policies | already in prior_art_feedback.md
+- 2608.03978 | Gupta | Stochastic Multiple Shooting Trajectory Optimization via Sequential Local Policy Evaluation | already in prior_art_feedback.md
+- 2608.19443 | Pan | Hybrid Feedback Sampling for Sample-Efficient Model Predictive Control | already in prior_art_feedback.md (there called FS-MPC)
+- 2605.04732 | Yadav | Using Common Random Numbers for Simulation-based Planning with Rollouts | CRN for rollout planning
+
+## Conformal, certification, selection and robustness neighbours
+- 2403.03868 | Jin | Confidence on the Focal: Conformal Prediction with Selection-Conditional Coverage | selection-conditional conformal coverage (selection among calibration units)
+- 2210.01408 | Jin | Selection by Prediction with Conformal p-values | conformal selection
+- 2208.02814 | Angelopoulos | Conformal Risk Control | monotone-loss risk control
+- 2110.01052 | Angelopoulos | Learn then Test: Calibrating Predictive Algorithms to Achieve Risk Control | LTT
+- 2310.05921 | Lekeufack | Conformal Decision Theory: Safe Autonomous Decisions from Imperfect Predictions | online decision-parameter calibration
+- 2106.00170 | Gibbs | Adaptive Conformal Inference Under Distribution Shift | ACI
+- 1904.06019 | Tibshirani | Conformal Prediction Under Covariate Shift | weighted CP
+- 2307.01928 | Ren | Robots That Ask For Help: Uncertainty Alignment for Large Language Model Planners | conformal sets and asking for help
+- 2605.30660 | Singh | BOKBO (Best of K Bad Options): Calibrated Abstention for VLA Policies | calibrated abstention over K candidate options
+- 2210.12496 | Stanton | Bayesian Optimization with Conformal Prediction Sets | conformal BO
+- 2210.10254 | Lindemann | Safe Planning in Dynamic Environments using Conformal Prediction | conformal regions inside MPC
+- 2602.12047 | Srinivasan | Safety Beyond the Training Data: Robust Out-of-Distribution MPC via Conformalized System Level Synthesis | weighted CP + SLS
+- 2604.06058 | Cherenson | Staggered Integral Online Conformal Prediction for Safe Dynamics Adaptation with Multi-Step Coverage Guarantees | multi-step online CP
+- 2505.00779 | Seo | Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures | conformal-calibrated epistemic threshold
+- 2605.24463 | Wu | Cost-Aware Adaptive Conformal Inference for Runtime Assurance in Dynamic Environments | ACI runtime assurance
+- 2511.02103 | Pang | Efficient Quantification of Time-Series Prediction Error: Optimal Selection Conformal Prediction | time-series CP
+- 2606.05551 | Zhu | Conformal Risk-Averse Decision Making with Action Conditional Guarantee | action-conditional guarantee
+- 2607.02206 | Zheng | Prediction Sets for Counterfactual Decisions: Coverage, Optimality, and Conformal Prediction | decision sets
+- 2510.07750 | Zhou | Calibrating Decision Robustness via Inverse Conformal Risk Control | CRC for decisions
+- 2609.23170 | Zhao | Conformal Robustness in Prediction-Driven Decision-Making | conformal robust optimisation
+- 2608.29789 | Long | A Unified Perspective on Conformal Prediction and Wasserstein Distributionally Robust Optimization for Uncertainty Quantification | CP and DRO link
+- 2605.28330 | Serfling | Chance-Constrained MPPI under State and Dynamic Object Prediction Uncertainty and the Evaluation of Collision Risk Calibration | sampling MPC calibration
+- 1712.06924 | Laroche | Safe Policy Improvement with Baseline Bootstrapping | SPIBB
+- 1907.05079 | Nadjahi | Safe Policy Improvement with Soft Baseline Bootstrapping | Soft-SPIBB
+- 2005.13239 | Yu | MOPO: Model-based Offline Policy Optimization | uncertainty penalty
+- 2005.05951 | Kidambi | MOReL : Model-Based Offline Reinforcement Learning | pessimistic MDP
+- 2107.06226 | Uehara | Pessimistic Model-based Offline Reinforcement Learning under Partial Coverage | pessimism theory
+- 2510.18161 | Bastani | Beating the Winner's Curse via Inference-Aware Policy Optimization | winner's curse in policy optimisation (statistics/ML)
+- 2411.18569 | Zrnic | A Flexible Defense Against the Winner's Curse | winner's curse correction
+- 2306.10081 | Iyengar | Optimizer's Information Criterion: Dissecting and Correcting Bias in Data-Driven Optimization | optimiser's curse correction
+- 1506.02629 | Dwork | Generalization in Adaptive Data Analysis and Holdout Reuse | reusable holdout
+- 1511.05219 | Russo | How much does your data exploration overfit? Controlling bias via information usage | information-usage bias bound
+- 1806.02329 | Neel | Mitigating Bias in Adaptive Data Gathering via Differential Privacy | adaptive-selection bias
+- 2609.33180 | Sun | Which Self-Improvements Should We Trust? Reliable Self-Improvement When Agents Reuse Their Benchmarks | holdout reuse for agents
+- 2209.08869 | Micheli | Data-driven distributionally robust MPC for systems with uncertain dynamics | Wasserstein DR-MPC
+- 2205.04146 | Mark | Recursively feasible Data-driven Distributionally Robust Model Predictive Control with additive disturbances | DR-MPC
+- 2304.14057 | Zhu | Propagating Kernel Ambiguity Sets in Nonlinear Data-driven Dynamics Models | MMD ambiguity sets in dynamics
+- 2607.09820 | Guo | Learning Predictive Ambiguity Sets for Decision-Focused Distributionally Robust Optimization | learned ambiguity radius
+- 2607.01171 | Raeth | Decision-Aware Training for Sample-Based Generative Models | energy score + decision loss
+- 2506.13687 | Wessel | Enforcing tail calibration when training probabilistic forecast models | tail-calibration training
+- 2306.17366 | Voelcker | lambda-models: Effective Decision-Aware Reinforcement Learning with Latent Models | decision-aware model learning
+- 2310.06253 | Wei | A Unified View on Solving Objective Mismatch in Model-Based Reinforcement Learning | objective mismatch
+- 2506.04828 | Latyshev | Safe Planning and Policy Optimization via World Model Learning | safe planning with WMs
+- 2601.18107 | Agand | Beyond Static Datasets: Robust Offline Policy Optimization via Vetted Synthetic Transitions | filtering model transitions
+- 1905.05824 | Oberst | Counterfactual Off-Policy Evaluation with Gumbel-Max Structural Causal Models | SCM counterfactual coupling
+- 2109.05128 | Chen | Interactive multi-modal motion planning with Branch Model Predictive Control | trajectory-tree feedback MPC
+- 2411.13935 | Lee | Fast Stochastic MPC using Affine Disturbance Feedback Gains Learned Offline | ADF-SMPC
+- 1906.08649 | Wang | Exploring Model-based Planning with Policy Networks | POPLIN
+
+## Not verified in this session (do not cite without checking)
+- Smith and Winkler 2006 (verified earlier in paper/refs_verification.md), Hoyer et al. 2008 additive noise models (NIPS, no arXiv id retrieved), Staib and Jegelka 2019 (DRO with MMD, id not retrieved), Gneiting and Ranjan 2011 (threshold-weighted scoring), Bertsekas OLFC, Mayne et al. 2005 (tube MPC).
