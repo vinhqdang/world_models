@@ -52,6 +52,8 @@ SCHEMES = {
     'crn_sobol_anti_chain5': dict(gen_kind='sobol', share=True, anti=True, sticky='chain', refresh=0.5),
     'crn_anti_chain5': dict(gen_kind='iid', share=True, anti=True, sticky='chain', refresh=0.5),
     'crn_anti_chain3': dict(gen_kind='iid', share=True, anti=True, sticky='chain', refresh=0.3),
+    'crn_chain3':   dict(gen_kind='iid', share=True, sticky='chain', refresh=0.3),
+    'crn_chain5':   dict(gen_kind='iid', share=True, sticky='chain', refresh=0.5),
     'crn_lhs_anti_replan': dict(gen_kind='lhs', share=True, anti=True, sticky='replan'),
 }
 
