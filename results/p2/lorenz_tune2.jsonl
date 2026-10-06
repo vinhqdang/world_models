@@ -1,1 +1,6 @@
 {"vpt": 26.079999923706055, "vpt_med": 24.0, "vpt_lyap": 0.4725695986175537, "blow": 1.0, "edist": NaN, "offman": NaN, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "ss@0.9"}
+{"vpt": 22.100000381469727, "vpt_med": 21.0, "vpt_lyap": 0.4004520069122315, "blow": 1.0, "edist": NaN, "offman": NaN, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "ss@0.6"}
+{"vpt": 17.219999313354492, "vpt_med": 16.0, "vpt_lyap": 0.3120263875579834, "blow": 0.5, "edist": 1.8119196891784668, "offman": 0.09216152876615524, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "iso@0.03"}
+{"vpt": 17.450000762939453, "vpt_med": 16.0, "vpt_lyap": 0.3161940138244629, "blow": 0.9375, "edist": 4.5362229347229, "offman": 0.1966705024242401, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "normal@0.03"}
+{"vpt": 17.260000228881836, "vpt_med": 16.0, "vpt_lyap": 0.31275120414733887, "blow": 0.5, "edist": 1.7558155059814453, "offman": 0.08551399409770966, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "normal@0.05"}
+{"vpt": 17.56999969482422, "vpt_med": 15.0, "vpt_lyap": 0.31836839447021487, "blow": 0.0, "edist": 0.0802907943725586, "offman": 0.09640809893608093, "system": "lorenz", "phase": "tune2", "seed": 0, "method": "iso@0.05"}

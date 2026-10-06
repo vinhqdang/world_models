@@ -85,10 +85,38 @@ for s in stats:
         r['tau_all'] = tau(q, y); lo, hi = boot(lambda a, b: kendalltau(a, b)[0], q, y); r['tau_all_ci'] = (lo, hi)
         r['rho_all'] = spearmanr(q, y)[0]
         r['tau_within_kind'] = within_kind_tau(q, y)
+        rng_ = np.random.default_rng(1); wv = []
+        for _ in range(1000):                                   # stratified (by kind) bootstrap over models
+            ii = np.concatenate([rng_.choice(np.where(kind == k)[0], (kind == k).sum()) for k in sorted(set(kind))])
+            c_ = d_ = 0
+            for k in sorted(set(kind)):
+                idx = ii[kind[ii] == k]
+                for a_, b_ in itertools.combinations(idx, 2):
+                    if a_ == b_: continue
+                    s_ = np.sign(q[a_] - q[b_]) * np.sign(y[a_] - y[b_]); c_ += s_ > 0; d_ += s_ < 0
+            wv.append((c_ - d_) / max(c_ + d_, 1))
+        r['tau_within_kind_ci'] = tuple(np.percentile(wv, [2.5, 97.5]))
+        r['q'] = q; r['y'] = y
         r['tau_es'] = tau(q, y, kind == 'es'); r['tau_gauss'] = tau(q, y, kind == 'gauss'); r['tau_det'] = tau(q, y, kind == 'det')
         r['tau_nodet'] = tau(q, y, kind != 'det')
         rows.append(r)
 
+BASE = ['ES1', 'MSE1', 'NLL1', 'ES_H', 'SE_H', 'ES1_edge', 'Brier_hazard', 'Brier_hazard_edge']
+def paired_diff(qa, qb, y, B=2000, seed=3):
+    rng = np.random.default_rng(seed); n = len(y); v = []
+    for _ in range(B):
+        i = rng.integers(0, n, n)
+        a_, b_ = kendalltau(qa[i], y[i])[0], kendalltau(qb[i], y[i])[0]
+        if np.isfinite(a_) and np.isfinite(b_): v.append(a_ - b_)
+    return np.percentile(v, [2.5, 97.5])
+for tgt in ('succ', 'fall'):
+    rs = [r for r in rows if r['target'] == tgt]
+    bl = [r for r in rs if r['stat'] in BASE]
+    best = max(bl, key=lambda r: np.nan_to_num(r['tau_all'], nan=-9))
+    es1 = [r for r in rs if r['stat'] == 'ES1'][0]
+    for r in rs:
+        r['d_es1'] = r['tau_all'] - es1['tau_all']; r['d_es1_ci'] = tuple(paired_diff(r['q'], es1['q'], r['y']))
+        r['d_best'] = r['tau_all'] - best['tau_all']; r['d_best_ci'] = tuple(paired_diff(r['q'], best['q'], r['y'])); r['best_name'] = best['stat']
 sh = split_half_tau()
 lines = []
 lines.append(f'# P3 results table (n_models={len(names)}; ground truth: fixed open-loop CEM planner, eval seed 901, {nep.min()}-{nep.max()} episodes/model)\n')
@@ -96,11 +124,11 @@ lines.append(f'Ground-truth reliability (Kendall tau between even-slot and odd-s
 lines.append('GT summary by kind: ' + '; '.join(f'{k}: succ {succ[kind==k].mean():.3f} (range {succ[kind==k].min():.2f}-{succ[kind==k].max():.2f}), fall {fall[kind==k].mean():.3f} (range {fall[kind==k].min():.2f}-{fall[kind==k].max():.2f}), n={int((kind==k).sum())}' for k in sorted(set(kind))) + '\n')
 for tgt, title in (('succ', 'Target: closed-loop SUCCESS rate'), ('fall', 'Target: closed-loop FALL rate (tau with -fall)')):
     lines.append(f'\n## {title}\n')
-    lines.append('| statistic | group | tau (all) [95% CI over models] | Spearman | tau within kind | tau es-only | tau gauss-only | tau det-only | tau non-det |')
-    lines.append('|---|---|---|---|---|---|---|---|---|')
+    lines.append('| statistic | group | tau (all) [95% CI over models] | Spearman | tau within kind [95% CI] | tau es-only | tau gauss-only | tau det-only | tau non-det | d tau vs ES1 [CI] | d tau vs best baseline [CI] |')
+    lines.append('|---|---|---|---|---|---|---|---|---|---|---|')
     for r in sorted([r for r in rows if r['target'] == tgt], key=lambda r: -np.nan_to_num(r['tau_all'], nan=-9)):
         f = lambda v: 'n/a' if not np.isfinite(v) else f'{v:+.2f}'
-        lines.append(f"| {r['stat']} | {r['group']} | {f(r['tau_all'])} [{f(r['tau_all_ci'][0])}, {f(r['tau_all_ci'][1])}] | {f(r['rho_all'])} | {f(r['tau_within_kind'])} | {f(r['tau_es'])} | {f(r['tau_gauss'])} | {f(r['tau_det'])} | {f(r['tau_nodet'])} |")
+        lines.append(f"| {r['stat']} | {r['group']} | {f(r['tau_all'])} [{f(r['tau_all_ci'][0])}, {f(r['tau_all_ci'][1])}] | {f(r['rho_all'])} | {f(r['tau_within_kind'])} [{f(r['tau_within_kind_ci'][0])}, {f(r['tau_within_kind_ci'][1])}] | {f(r['tau_es'])} | {f(r['tau_gauss'])} | {f(r['tau_det'])} | {f(r['tau_nodet'])} | {f(r['d_es1'])} [{f(r['d_es1_ci'][0])}, {f(r['d_es1_ci'][1])}] | {f(r['d_best'])} [{f(r['d_best_ci'][0])}, {f(r['d_best_ci'][1])}] vs {r['best_name']} |")
 # per-model table
 lines.append('\n## Per-model data\n')
 cols = ['ES1', 'MSE1', 'NLL1', 'ES_H', 'pool_pick_gain', 'pool_pick_opt', 'OW_ES1', 'im_succ', 'im_fall']
@@ -110,4 +138,4 @@ for i, n in enumerate(names):
     lines.append(f"| {n} | {kind[i]} | {st[n]['steps']} | {st[n]['n_data']} | {succ[i]:.3f} | {fall[i]:.3f} | " + ' | '.join(f"{st[n].get(c, float('nan')):.3f}" for c in cols) + ' |')
 open(f'{OUT}/RESULTS_TABLE.md', 'w').write('\n'.join(lines))
 print('\n'.join(lines))
-json.dump(dict(names=names, rows=[{k: (list(v) if isinstance(v, tuple) else v) for k, v in r.items()} for r in rows]), open(f'{OUT}/correlations.json', 'w'), default=float)
+json.dump(dict(names=names, rows=[{k: (list(v) if isinstance(v, tuple) else v) for k, v in r.items() if k not in ('q','y')} for r in rows]), open(f'{OUT}/correlations.json', 'w'), default=float)
