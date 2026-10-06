@@ -1,0 +1,60 @@
+Final population of the base CEM, N=32, closed-loop states: 960 states (model 0), 960 states (model 1), 960 states (model 2)
+pool n         functional alpha      pointwise cov    selected-plan cov pointwise q selected q
+     2   fall probability  0.05    0.947 [0.918,0.961]     0.943 [0.918,0.961]       0.200      0.187
+     2   fall probability  0.10    0.915 [0.908,0.930]     0.904 [0.895,0.922]       0.129      0.116
+     2         total cost  0.05    0.935 [0.925,0.945]     0.934 [0.924,0.948]       0.632      0.632
+     2         total cost  0.10    0.897 [0.877,0.920]     0.898 [0.886,0.926]       0.398      0.409
+     4   fall probability  0.05    0.955 [0.945,0.964]     0.947 [0.935,0.959]       0.211      0.193
+     4   fall probability  0.10    0.902 [0.874,0.926]     0.888 [0.857,0.919]       0.118      0.103
+     4         total cost  0.05    0.951 [0.939,0.968]     0.954 [0.935,0.972]       0.684      0.741
+     4         total cost  0.10    0.893 [0.869,0.906]     0.896 [0.858,0.913]       0.398      0.416
+     8   fall probability  0.05    0.950 [0.940,0.959]     0.954 [0.941,0.962]       0.210      0.217
+     8   fall probability  0.10    0.899 [0.878,0.933]     0.897 [0.848,0.945]       0.124      0.124
+     8         total cost  0.05    0.929 [0.921,0.943]     0.941 [0.926,0.956]       0.654      0.756
+     8         total cost  0.10    0.890 [0.879,0.908]     0.908 [0.891,0.926]       0.425      0.507
+    16   fall probability  0.05    0.935 [0.924,0.947]     0.950 [0.938,0.962]       0.204      0.240
+    16   fall probability  0.10    0.895 [0.882,0.909]     0.911 [0.902,0.922]       0.130      0.152
+    16         total cost  0.05    0.909 [0.874,0.936]     0.939 [0.906,0.956]       0.647      0.855
+    16         total cost  0.10    0.861 [0.848,0.875]     0.897 [0.878,0.911]       0.394      0.540
+    32   fall probability  0.05    0.937 [0.931,0.945]     0.955 [0.946,0.963]       0.214      0.275
+    32   fall probability  0.10    0.859 [0.840,0.874]     0.897 [0.869,0.919]       0.121      0.164
+    32         total cost  0.05    0.916 [0.902,0.923]     0.954 [0.947,0.961]       0.672      0.997
+    32         total cost  0.10    0.865 [0.848,0.886]     0.919 [0.906,0.932]       0.427      0.671
+executed plan (mean of the elites) for comparison, calibrated on random final-population members (pointwise) vs on the executed plans (selected):
+    fall probability alpha 0.05: pointwise 0.935 selected 0.935
+    fall probability alpha 0.10: pointwise 0.905 selected 0.903
+          total cost alpha 0.05: pointwise 0.934 selected 0.948
+          total cost alpha 0.10: pointwise 0.893 selected 0.915
+
+Final population of the base CEM, N=64, closed-loop states: 640 states (model 0), 640 states (model 1), 640 states (model 2)
+pool n         functional alpha      pointwise cov    selected-plan cov pointwise q selected q
+     2   fall probability  0.05    0.949 [0.932,0.961]     0.937 [0.915,0.954]       0.213      0.199
+     2   fall probability  0.10    0.902 [0.872,0.924]     0.889 [0.858,0.920]       0.136      0.124
+     2         total cost  0.05    0.954 [0.943,0.967]     0.961 [0.953,0.968]       0.739      0.791
+     2         total cost  0.10    0.896 [0.835,0.929]     0.904 [0.844,0.938]       0.447      0.494
+     4   fall probability  0.05    0.956 [0.940,0.976]     0.958 [0.939,0.981]       0.221      0.223
+     4   fall probability  0.10    0.927 [0.910,0.937]     0.928 [0.913,0.938]       0.148      0.145
+     4         total cost  0.05    0.953 [0.931,0.964]     0.960 [0.940,0.977]       0.735      0.802
+     4         total cost  0.10    0.881 [0.868,0.886]     0.894 [0.876,0.906]       0.434      0.487
+     8   fall probability  0.05    0.950 [0.932,0.979]     0.950 [0.921,0.984]       0.223      0.225
+     8   fall probability  0.10    0.909 [0.895,0.928]     0.916 [0.889,0.941]       0.143      0.153
+     8         total cost  0.05    0.926 [0.912,0.955]     0.947 [0.932,0.971]       0.682      0.805
+     8         total cost  0.10    0.885 [0.872,0.897]     0.907 [0.895,0.916]       0.469      0.562
+    16   fall probability  0.05    0.932 [0.912,0.944]     0.948 [0.930,0.967]       0.212      0.250
+    16   fall probability  0.10    0.863 [0.845,0.877]     0.874 [0.840,0.910]       0.130      0.149
+    16         total cost  0.05    0.912 [0.868,0.937]     0.939 [0.899,0.961]       0.681      0.877
+    16         total cost  0.10    0.853 [0.824,0.900]     0.902 [0.871,0.943]       0.443      0.596
+    32   fall probability  0.05    0.924 [0.916,0.928]     0.943 [0.942,0.945]       0.214      0.264
+    32   fall probability  0.10    0.882 [0.854,0.909]     0.911 [0.887,0.932]       0.146      0.191
+    32         total cost  0.05    0.896 [0.848,0.922]     0.935 [0.893,0.970]       0.671      0.944
+    32         total cost  0.10    0.836 [0.770,0.869]     0.891 [0.835,0.925]       0.436      0.657
+    64   fall probability  0.05    0.917 [0.884,0.940]     0.955 [0.935,0.972]       0.217      0.308
+    64   fall probability  0.10    0.854 [0.830,0.888]     0.911 [0.882,0.942]       0.139      0.203
+    64         total cost  0.05    0.891 [0.858,0.922]     0.943 [0.929,0.965]       0.697      1.073
+    64         total cost  0.10    0.825 [0.808,0.847]     0.894 [0.879,0.911]       0.450      0.715
+executed plan (mean of the elites) for comparison, calibrated on random final-population members (pointwise) vs on the executed plans (selected):
+    fall probability alpha 0.05: pointwise 0.935 selected 0.934
+    fall probability alpha 0.10: pointwise 0.882 selected 0.884
+          total cost alpha 0.05: pointwise 0.928 selected 0.947
+          total cost alpha 0.10: pointwise 0.859 selected 0.881
+

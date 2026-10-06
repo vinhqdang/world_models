@@ -1,0 +1,11 @@
+pi_0 on the true simulator (n=4000 episodes per row, 120-step limit, pilot seed 1100)
+controller                          wind  success     fall [+-95%]  timeout   median steps (successes)
+pi_0 (v0=0.5, y_so=0.85) [used]     0.09    0.998    0.002 +-0.001    0.000                       59.0
+pi_0 (v0=0.5, y_so=0.85) [used]     0.13    0.864    0.135 +-0.011    0.002                       61.0
+pi_0 fast (v0=1.0) [reference]      0.09    0.999    0.001 +-0.001    0.000                       38.0
+pi_0 fast (v0=1.0) [reference]      0.13    0.933    0.067 +-0.008   -0.000                       39.0
+
+Base planner reference (D9, seed 211, 329 episodes, wind 0.09): success 0.888, fall 0.033 [0.015, 0.055], timeout 0.079, median steps 51 [49, 54].
+Energy-score planner after a 0.09 -> 0.13 shift (FINDINGS_stochastic.md, expected cost, not CRN): success 0.709, fall 0.200.
+Reading: the used pi_0 falls less than the base planner at wind 0.09 (0.002 vs 0.033) and is slower (median 59 vs 51 steps) as required; the fast variant
+is both safer and faster than the base planner, so on this benchmark deferral is not intrinsically costly (the slowness of the used pi_0 is a design choice, speed cap v0).

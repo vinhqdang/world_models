@@ -1,0 +1,50 @@
+{
+ "frozen_at": "2026-10-05 22:55:26.074051Z",
+ "note": "Fixed before any evaluation-seed run. Calibration seeds 1000-1002 (N=32), 1010-1012 (N=64); pilot seed 1100 (debugging, gamma choice); evaluation seeds 2000-2002.",
+ "planner": {
+  "N": 32,
+  "M": 8,
+  "H": 10,
+  "iters": 3,
+  "scheme": "crn_chain3",
+  "models": "suite_hi/ckpt/es_s{0,1,2}.pt",
+  "variant": "cliff_hi",
+  "kappa": 3.0,
+  "stage_w": 1.0
+ },
+ "scc": {
+  "certified_quantity": "open-loop H-step pit-fall probability (failure-cost component of the planner score) of the executed plan",
+  "residual": "R = pT - pf, pT from 200 fresh true-simulator particles, pf = model fall probability of the executed plan (8 chained-CRN particles)",
+  "b": 0.1,
+  "tau": "kappa*b = 0.30 cost units (commit iff U <= b on the probability scale)",
+  "K": 4,
+  "Mp": 64,
+  "alphas": [
+   0.05,
+   0.1
+  ],
+  "stage2_candidates": "executed plan + top-3 members by planner score",
+  "stage2_choice": "argmin of total planner score with 64 fresh independent particles",
+  "pointwise_band": "residuals of 4 random final-population members (stage 1) / the 4 candidates (stage 2)"
+ },
+ "aci": {
+  "update": "alpha_{t+1} = clip(alpha_t + gamma (alpha - err_t), 0.002, 0.5)",
+  "gamma": 0.05,
+  "err": "1[F_replay > U] for committed steps, F_replay = counterfactual open-loop replay of the committed plan on the realised wind of the next H steps"
+ },
+ "pi0": {
+  "y_so": 0.85,
+  "hold": 0.05,
+  "v0": 0.5,
+  "x_clear": 0.8,
+  "x_in": 0.14
+ },
+ "equal_compute_arm": "base N=43 (3*43*8*10 = 10320 rows per env step = SCC rows per env step)",
+ "protocol": {
+  "E": 16,
+  "J_priority": 6,
+  "J_other": 4,
+  "slots_common_start_goal_and_wind": true,
+  "shift": "burn-in 200 steps at 0.09 (stateful arms only), then restart at 0.13"
+ }
+}

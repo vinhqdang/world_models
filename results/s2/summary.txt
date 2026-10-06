@@ -1,0 +1,170 @@
+======================================================================================================================================================
+IN DISTRIBUTION (wind 0.09)
+======================================================================================================================================================
+arm                                 eps  success [95% CI]      fall [95% CI]         timeout [95% CI]      median steps (successes)
+base open loop N=32                 288  0.885 [0.847,0.920]  0.031 [0.014,0.052]  0.083 [0.052,0.118]  53.0 [49,58]
+base + CVaR mix 0.5                 288  0.785 [0.736,0.833]  0.021 [0.007,0.038]  0.194 [0.149,0.240]  57.0 [54,61]
+SCC alpha=0.05 (static)             288  0.951 [0.927,0.976]  0.000 [0.000,0.000]  0.049 [0.024,0.073]  51.0 [48,54]
+SCC alpha=0.10 (static)             288  0.948 [0.920,0.972]  0.000 [0.000,0.000]  0.052 [0.028,0.080]  50.0 [46,52]
+base open loop N=43 (equal compute)  144  0.903 [0.854,0.944]  0.007 [0.000,0.021]  0.090 [0.049,0.139]  49.0 [45,52]
+random deferral p=0.22 (match SCC.05) N=32  288  0.948 [0.920,0.972]  0.038 [0.017,0.062]  0.014 [0.003,0.028]  48.0 [46,51]
+random deferral p=0.15 (match SCC.10) N=32  288  0.934 [0.903,0.962]  0.024 [0.007,0.042]  0.042 [0.021,0.066]  48.0 [45,51]
+SCC pointwise band alpha=0.10 N=32  144  0.951 [0.910,0.979]  0.000 [0.000,0.000]  0.049 [0.021,0.090]  50.0 [46,54]
+SCC selected-plan band alpha=0.10 N=64   96  0.958 [0.917,0.990]  0.000 [0.000,0.000]  0.042 [0.010,0.083]  49.5 [45,55]
+SCC pointwise band alpha=0.10 N=64   96  0.948 [0.906,0.990]  0.010 [0.000,0.031]  0.042 [0.010,0.083]  49.0 [43,54]
+pi_0 only (v0=0.5)                  288  1.000 [1.000,1.000]  0.000 [0.000,0.000]  0.000 [0.000,0.000]  59.0 [57,61]
+pi_0 fast only (v0=1.0)             288  1.000 [1.000,1.000]  0.000 [0.000,0.000]  0.000 [0.000,0.000]  38.0 [37,40]
+
+Compute (predictor rows per env step; base N=32, M=8, H=10, 3 iterations = 7680):
+  base open loop N=32                               7680   wall s/run    403
+  base + CVaR mix 0.5                               7680   wall s/run    480
+  SCC alpha=0.05 (static)                          10320   wall s/run    531
+  SCC alpha=0.10 (static)                          10320   wall s/run    525
+  base open loop N=43 (equal compute)              10320   wall s/run    267
+  random deferral p=0.22 (match SCC.05) N=32        7680   wall s/run    352
+  random deferral p=0.15 (match SCC.10) N=32        7680   wall s/run    373
+  SCC pointwise band alpha=0.10 N=32               10320   wall s/run    260
+  SCC selected-plan band alpha=0.10 N=64           18000   wall s/run    320
+  SCC pointwise band alpha=0.10 N=64               18000   wall s/run    313
+
+SCC gate diagnostics (steps of the post phase; FCR = P(commit and true open-loop H-step fall probability of the committed plan > b=0.10), true simulator, diagnostic only):
+  scc05          steps  16785 commit s1 0.000 s2 0.779 defer 0.221 | FCR (commit & pT>0.1) 0.0120 [0.0103,0.0140] vs alpha 0.05 | mean pT: all 0.0377 commit 0.0087 defer 0.1327 | gate: P(base plan risky pT>b) 0.145, risky steps deferred 0.866, deferred steps risky 0.567 | replayed-fall rate of commits 0.0093 | alpha_t mean 0.050 end 0.050 | rows/env-step 10320
+  scc10          steps  16662 commit s1 0.000 s2 0.850 defer 0.150 | FCR (commit & pT>0.1) 0.0244 [0.0219,0.0272] vs alpha 0.1 | mean pT: all 0.0377 commit 0.0116 defer 0.1696 | gate: P(base plan risky pT>b) 0.145, risky steps deferred 0.748, deferred steps risky 0.726 | replayed-fall rate of commits 0.0097 | alpha_t mean 0.100 end 0.100 | rows/env-step 10320
+  pw10           steps   8236 commit s1 0.000 s2 0.882 defer 0.118 | FCR (commit & pT>0.1) 0.0312 [0.0273,0.0359] vs alpha 0.1 | mean pT: all 0.0365 commit 0.0124 defer 0.1924 | gate: P(base plan risky pT>b) 0.140, risky steps deferred 0.671, deferred steps risky 0.798 | replayed-fall rate of commits 0.0111 | alpha_t mean 0.100 end 0.100 | rows/env-step 10320
+  sel64          steps   5422 commit s1 0.000 s2 0.838 defer 0.162 | FCR (commit & pT>0.1) 0.0240 [0.0197,0.0285] vs alpha 0.1 | mean pT: all 0.0378 commit 0.0106 defer 0.1654 | gate: P(base plan risky pT>b) 0.148, risky steps deferred 0.770, deferred steps risky 0.703 | replayed-fall rate of commits 0.0150 | alpha_t mean 0.100 end 0.100 | rows/env-step 18000
+  pw64           steps   5320 commit s1 0.000 s2 0.872 defer 0.128 | FCR (commit & pT>0.1) 0.0340 [0.0284,0.0403] vs alpha 0.1 | mean pT: all 0.0367 commit 0.0126 defer 0.1815 | gate: P(base plan risky pT>b) 0.143, risky steps deferred 0.673, deferred steps risky 0.754 | replayed-fall rate of commits 0.0155 | alpha_t mean 0.100 end 0.100 | rows/env-step 18000
+
+Paired comparisons (b minus a) on matched (model, slot, episode) pairs; cells: difference [95% CI] McNemar p (a-only successes... discordant n10/n01 = a-event-only / b-event-only)
+  cvar minus base                              n= 288 | succ -0.101 [-0.149,-0.056] p=0.000 (39/10) | fall -0.010 [-0.035,+0.014] p=0.581 (8/5) | time +0.111 [+0.069,+0.156] p=0.000 (5/37)
+  scc05 minus base                             n= 288 | succ +0.066 [+0.031,+0.104] p=0.001 (6/25) | fall -0.031 [-0.052,-0.014] p=0.004 (9/0) | time -0.035 [-0.069,-0.003] p=0.064 (17/7)
+  scc10 minus base                             n= 288 | succ +0.062 [+0.028,+0.097] p=0.001 (6/24) | fall -0.031 [-0.052,-0.014] p=0.004 (9/0) | time -0.031 [-0.066,+0.003] p=0.108 (17/8)
+  eq43 minus base                              n= 144 | succ +0.000 [-0.049,+0.049] p=1.000 (6/6) | fall -0.035 [-0.069,+0.000] p=0.125 (6/1) | time +0.035 [-0.014,+0.076] p=0.227 (3/8)
+  rand05 minus base                            n= 288 | succ +0.062 [+0.028,+0.097] p=0.001 (6/24) | fall +0.007 [-0.021,+0.035] p=0.804 (7/9) | time -0.069 [-0.104,-0.038] p=0.000 (22/2)
+  rand10 minus base                            n= 288 | succ +0.049 [+0.017,+0.083] p=0.007 (5/19) | fall -0.007 [-0.031,+0.017] p=0.774 (7/5) | time -0.042 [-0.069,-0.014] p=0.008 (15/3)
+  pw10 minus base                              n= 144 | succ +0.049 [+0.007,+0.097] p=0.065 (2/9) | fall -0.042 [-0.076,-0.014] p=0.031 (6/0) | time -0.007 [-0.049,+0.035] p=1.000 (5/4)
+  sel64 minus base                             n=  96 | succ +0.083 [+0.021,+0.146] p=0.021 (1/9) | fall -0.052 [-0.094,-0.010] p=0.062 (5/0) | time -0.031 [-0.094,+0.031] p=0.508 (6/3)
+  pw64 minus base                              n=  96 | succ +0.073 [+0.010,+0.135] p=0.065 (2/9) | fall -0.042 [-0.083,-0.010] p=0.125 (4/0) | time -0.031 [-0.094,+0.031] p=0.508 (6/3)
+  pi0 minus base                               n= 288 | succ +0.115 [+0.080,+0.153] p=0.000 (0/33) | fall -0.031 [-0.052,-0.014] p=0.004 (9/0) | time -0.083 [-0.118,-0.052] p=0.000 (24/0)
+  pi0fast minus base                           n= 288 | succ +0.115 [+0.080,+0.153] p=0.000 (0/33) | fall -0.031 [-0.052,-0.014] p=0.004 (9/0) | time -0.083 [-0.118,-0.056] p=0.000 (24/0)
+
+  base minus cvar                              n= 288 | succ +0.101 [+0.056,+0.146] p=0.000 (10/39) | fall +0.010 [-0.014,+0.035] p=0.581 (5/8) | time -0.111 [-0.153,-0.069] p=0.000 (37/5)
+  scc05 minus cvar                             n= 288 | succ +0.167 [+0.125,+0.212] p=0.000 (1/49) | fall -0.021 [-0.038,-0.007] p=0.031 (6/0) | time -0.146 [-0.191,-0.104] p=0.000 (44/2)
+  scc10 minus cvar                             n= 288 | succ +0.163 [+0.118,+0.208] p=0.000 (2/49) | fall -0.021 [-0.038,-0.007] p=0.031 (6/0) | time -0.142 [-0.184,-0.101] p=0.000 (43/2)
+  eq43 minus cvar                              n= 144 | succ +0.097 [+0.049,+0.153] p=0.001 (1/15) | fall -0.014 [-0.042,+0.014] p=0.625 (3/1) | time -0.083 [-0.132,-0.035] p=0.002 (13/1)
+  rand05 minus cvar                            n= 288 | succ +0.163 [+0.118,+0.212] p=0.000 (5/52) | fall +0.017 [-0.010,+0.042] p=0.302 (5/10) | time -0.181 [-0.226,-0.135] p=0.000 (53/1)
+  rand10 minus cvar                            n= 288 | succ +0.149 [+0.104,+0.194] p=0.000 (4/47) | fall +0.003 [-0.021,+0.028] p=1.000 (6/7) | time -0.153 [-0.198,-0.114] p=0.000 (45/1)
+  pw10 minus cvar                              n= 144 | succ +0.146 [+0.090,+0.208] p=0.000 (1/22) | fall -0.021 [-0.049,+0.000] p=0.250 (3/0) | time -0.125 [-0.188,-0.062] p=0.000 (20/2)
+  sel64 minus cvar                             n=  96 | succ +0.198 [+0.125,+0.281] p=0.000 (0/19) | fall -0.021 [-0.052,+0.000] p=0.500 (2/0) | time -0.177 [-0.250,-0.104] p=0.000 (17/0)
+  pw64 minus cvar                              n=  96 | succ +0.188 [+0.104,+0.271] p=0.000 (1/19) | fall -0.010 [-0.052,+0.021] p=1.000 (2/1) | time -0.177 [-0.260,-0.104] p=0.000 (18/1)
+  pi0 minus cvar                               n= 288 | succ +0.215 [+0.167,+0.264] p=0.000 (0/62) | fall -0.021 [-0.038,-0.007] p=0.031 (6/0) | time -0.194 [-0.240,-0.149] p=0.000 (56/0)
+  pi0fast minus cvar                           n= 288 | succ +0.215 [+0.167,+0.264] p=0.000 (0/62) | fall -0.021 [-0.038,-0.007] p=0.031 (6/0) | time -0.194 [-0.240,-0.149] p=0.000 (56/0)
+
+Key contrasts (b minus a), matched episodes:
+  scc05 minus rand05                           n= 288 | succ +0.003 [-0.028,+0.035] p=1.000 (10/11) | fall -0.038 [-0.062,-0.017] p=0.001 (11/0) | time +0.035 [+0.010,+0.062] p=0.021 (3/13)
+  scc10 minus rand10                           n= 288 | succ +0.014 [-0.017,+0.042] p=0.481 (7/11) | fall -0.024 [-0.045,-0.007] p=0.016 (7/0) | time +0.010 [-0.014,+0.035] p=0.581 (5/8)
+  scc05 minus pi0                              n= 288 | succ -0.049 [-0.076,-0.024] p=0.000 (14/0) | fall +0.000 [+0.000,+0.000] p=1.000 (0/0) | time +0.049 [+0.024,+0.073] p=0.000 (0/14)
+  scc10 minus pi0                              n= 288 | succ -0.052 [-0.080,-0.028] p=0.000 (15/0) | fall +0.000 [+0.000,+0.000] p=1.000 (0/0) | time +0.052 [+0.028,+0.080] p=0.000 (0/15)
+  scc10 minus eq43                             n= 144 | succ +0.056 [+0.014,+0.104] p=0.039 (2/10) | fall -0.007 [-0.021,+0.000] p=1.000 (1/0) | time -0.049 [-0.097,-0.007] p=0.065 (9/2)
+  pw10 minus scc10                             n= 144 | succ -0.007 [-0.049,+0.028] p=1.000 (4/3) | fall +0.000 [+0.000,+0.000] p=1.000 (0/0) | time +0.007 [-0.028,+0.042] p=1.000 (3/4)
+  rand05 minus base                            n= 288 | succ +0.062 [+0.028,+0.101] p=0.001 (6/24) | fall +0.007 [-0.021,+0.035] p=0.804 (7/9) | time -0.069 [-0.104,-0.038] p=0.000 (22/2)
+  rand10 minus base                            n= 288 | succ +0.049 [+0.017,+0.083] p=0.007 (5/19) | fall -0.007 [-0.031,+0.017] p=0.774 (7/5) | time -0.042 [-0.069,-0.014] p=0.008 (15/3)
+  eq43 minus base                              n= 144 | succ +0.000 [-0.049,+0.049] p=1.000 (6/6) | fall -0.035 [-0.069,+0.000] p=0.125 (6/1) | time +0.035 [-0.007,+0.076] p=0.227 (3/8)
+  pi0fast minus pi0                            n= 288 | succ +0.000 [+0.000,+0.000] p=1.000 (0/0) | fall +0.000 [+0.000,+0.000] p=1.000 (0/0) | time +0.000 [+0.000,+0.000] p=1.000 (0/0)
+  sel64 minus scc10                            n=  96 | succ +0.000 [-0.031,+0.031] p=1.000 (1/1) | fall +0.000 [+0.000,+0.000] p=1.000 (0/0) | time +0.000 [-0.031,+0.031] p=1.000 (1/1)
+  sel64 minus pw64                             n=  96 | succ +0.010 [+0.000,+0.031] p=1.000 (0/1) | fall -0.010 [-0.031,+0.000] p=1.000 (1/0) | time +0.000 [-0.031,+0.031] p=1.000 (1/1)
+
+======================================================================================================================================================
+SHIFT (wind 0.09 -> 0.13 after 200 burn-in steps; post-shift episodes only; no retraining)
+======================================================================================================================================================
+arm                                 eps  success [95% CI]      fall [95% CI]         timeout [95% CI]      median steps (successes)
+base open loop N=32                 288  0.743 [0.694,0.795]  0.222 [0.174,0.271]  0.035 [0.014,0.056]  49.0 [44,54]
+base + CVaR mix 0.5                 288  0.705 [0.653,0.757]  0.194 [0.153,0.240]  0.101 [0.069,0.135]  53.0 [50,57]
+base + failure-rate ctrl (0.05)     288  0.715 [0.663,0.764]  0.194 [0.149,0.240]  0.090 [0.059,0.125]  54.0 [48,57]
+SCC alpha=0.05 (static)             288  0.861 [0.819,0.899]  0.104 [0.073,0.139]  0.035 [0.014,0.056]  52.0 [49,54]
+SCC alpha=0.10 (static)             288  0.875 [0.833,0.913]  0.094 [0.059,0.128]  0.031 [0.014,0.052]  51.0 [47,53]
+SCC alpha=0.05 + ACI                288  0.823 [0.778,0.865]  0.146 [0.108,0.188]  0.031 [0.014,0.052]  51.0 [47,54]
+SCC alpha=0.10 + ACI                288  0.781 [0.733,0.830]  0.181 [0.135,0.226]  0.038 [0.017,0.062]  51.0 [47,54]
+base open loop N=43 (equal compute)  144  0.778 [0.708,0.847]  0.194 [0.132,0.257]  0.028 [0.007,0.056]  51.0 [46,54]
+random deferral p=0.22 (match SCC.05) N=32  288  0.785 [0.736,0.830]  0.198 [0.153,0.247]  0.017 [0.003,0.035]  49.0 [45,52]
+random deferral p=0.15 (match SCC.10) N=32  288  0.809 [0.764,0.854]  0.174 [0.132,0.219]  0.017 [0.003,0.035]  50.0 [46,54]
+SCC pointwise band alpha=0.10 N=32  144  0.889 [0.833,0.938]  0.090 [0.049,0.139]  0.021 [0.000,0.049]  53.0 [48,56]
+pi_0 only (v0=0.5)                  288  0.878 [0.840,0.913]  0.122 [0.087,0.160]  0.000 [0.000,0.000]  60.0 [58,63]
+pi_0 fast only (v0=1.0)             288  0.941 [0.913,0.965]  0.059 [0.035,0.087]  0.000 [0.000,0.000]  39.0 [37,40]
+
+Compute (predictor rows per env step; base N=32, M=8, H=10, 3 iterations = 7680):
+  base open loop N=32                               7680   wall s/run    343
+  base + CVaR mix 0.5                               7680   wall s/run    397
+  base + failure-rate ctrl (0.05)                   7680   wall s/run    598
+  SCC alpha=0.05 (static)                          10320   wall s/run    497
+  SCC alpha=0.10 (static)                          10320   wall s/run    490
+  SCC alpha=0.05 + ACI                              8659   wall s/run    654
+  SCC alpha=0.10 + ACI                              8112   wall s/run    616
+  base open loop N=43 (equal compute)              10320   wall s/run    237
+  random deferral p=0.22 (match SCC.05) N=32        7680   wall s/run    328
+  random deferral p=0.15 (match SCC.10) N=32        7680   wall s/run    337
+  SCC pointwise band alpha=0.10 N=32               10320   wall s/run    252
+
+SCC gate diagnostics (steps of the post phase; FCR = P(commit and true open-loop H-step fall probability of the committed plan > b=0.10), true simulator, diagnostic only):
+  scc05          steps  16154 commit s1 0.000 s2 0.780 defer 0.220 | FCR (commit & pT>0.1) 0.1489 [0.1405,0.1583] vs alpha 0.05 | mean pT: all 0.0891 commit 0.0375 defer 0.2566 | gate: P(base plan risky pT>b) 0.348, risky steps deferred 0.533, deferred steps risky 0.844 | replayed-fall rate of commits 0.0335 | alpha_t mean 0.050 end 0.050 | rows/env-step 10320
+  scc10          steps  15704 commit s1 0.000 s2 0.849 defer 0.151 | FCR (commit & pT>0.1) 0.1890 [0.1800,0.1983] vs alpha 0.1 | mean pT: all 0.0869 commit 0.0459 defer 0.2939 | gate: P(base plan risky pT>b) 0.335, risky steps deferred 0.399, deferred steps risky 0.887 | replayed-fall rate of commits 0.0408 | alpha_t mean 0.100 end 0.100 | rows/env-step 10320
+  scc05aci       steps  15506 commit s1 0.545 s2 0.280 defer 0.176 | FCR (commit & pT>0.1) 0.2247 [0.2126,0.2389] vs alpha 0.05 | mean pT: all 0.0906 commit 0.0664 defer 0.1932 | gate: P(base plan risky pT>b) 0.341, risky steps deferred 0.324, deferred steps risky 0.628 | replayed-fall rate of commits 0.0591 | alpha_t mean 0.213 end 0.090 | rows/env-step 8659
+  scc10aci       steps  15884 commit s1 0.837 s2 0.106 defer 0.056 | FCR (commit & pT>0.1) 0.2588 [0.2444,0.2736] vs alpha 0.1 | mean pT: all 0.0813 commit 0.0704 defer 0.2500 | gate: P(base plan risky pT>b) 0.302, risky steps deferred 0.135, deferred steps risky 0.724 | replayed-fall rate of commits 0.0675 | alpha_t mean 0.376 end 0.500 | rows/env-step 8112
+  pw10           steps   7892 commit s1 0.000 s2 0.883 defer 0.117 | FCR (commit & pT>0.1) 0.1972 [0.1840,0.2119] vs alpha 0.1 | mean pT: all 0.0821 commit 0.0476 defer 0.3131 | gate: P(base plan risky pT>b) 0.318, risky steps deferred 0.327, deferred steps risky 0.889 | replayed-fall rate of commits 0.0373 | alpha_t mean 0.100 end 0.100 | rows/env-step 10320
+
+Paired comparisons (b minus a) on matched (model, slot, episode) pairs; cells: difference [95% CI] McNemar p (a-only successes... discordant n10/n01 = a-event-only / b-event-only)
+  cvar minus base                              n= 288 | succ -0.038 [-0.094,+0.014] p=0.207 (37/26) | fall -0.028 [-0.083,+0.024] p=0.374 (35/27) | time +0.066 [+0.031,+0.101] p=0.000 (4/23)
+  ctrl minus base                              n= 288 | succ -0.028 [-0.080,+0.028] p=0.374 (35/27) | fall -0.028 [-0.080,+0.024] p=0.358 (33/25) | time +0.056 [+0.021,+0.090] p=0.002 (5/21)
+  scc05 minus base                             n= 288 | succ +0.118 [+0.062,+0.174] p=0.000 (16/50) | fall -0.118 [-0.170,-0.069] p=0.000 (48/14) | time +0.000 [-0.028,+0.024] p=1.000 (7/7)
+  scc10 minus base                             n= 288 | succ +0.132 [+0.076,+0.184] p=0.000 (14/52) | fall -0.128 [-0.181,-0.073] p=0.000 (51/14) | time -0.003 [-0.024,+0.017] p=1.000 (6/5)
+  scc05aci minus base                          n= 288 | succ +0.080 [+0.028,+0.132] p=0.008 (23/46) | fall -0.076 [-0.132,-0.024] p=0.007 (42/20) | time -0.003 [-0.028,+0.024] p=1.000 (8/7)
+  scc10aci minus base                          n= 288 | succ +0.038 [-0.014,+0.090] p=0.193 (24/35) | fall -0.042 [-0.094,+0.014] p=0.162 (37/25) | time +0.003 [-0.024,+0.031] p=1.000 (8/9)
+  eq43 minus base                              n= 144 | succ +0.042 [-0.028,+0.111] p=0.345 (11/17) | fall -0.056 [-0.125,+0.014] p=0.200 (19/11) | time +0.014 [-0.021,+0.049] p=0.688 (2/4)
+  rand05 minus base                            n= 288 | succ +0.042 [-0.010,+0.094] p=0.169 (26/38) | fall -0.024 [-0.076,+0.028] p=0.450 (35/28) | time -0.017 [-0.035,+0.000] p=0.125 (6/1)
+  rand10 minus base                            n= 288 | succ +0.066 [+0.014,+0.118] p=0.016 (19/38) | fall -0.049 [-0.097,-0.003] p=0.065 (32/18) | time -0.017 [-0.042,+0.003] p=0.227 (8/3)
+  pw10 minus base                              n= 144 | succ +0.153 [+0.083,+0.222] p=0.000 (5/27) | fall -0.160 [-0.236,-0.090] p=0.000 (28/5) | time +0.007 [-0.021,+0.035] p=1.000 (2/3)
+  pi0 minus base                               n= 288 | succ +0.135 [+0.080,+0.191] p=0.000 (16/55) | fall -0.101 [-0.156,-0.045] p=0.001 (49/20) | time -0.035 [-0.056,-0.014] p=0.002 (10/0)
+  pi0fast minus base                           n= 288 | succ +0.198 [+0.142,+0.253] p=0.000 (8/65) | fall -0.163 [-0.215,-0.111] p=0.000 (55/8) | time -0.035 [-0.059,-0.014] p=0.002 (10/0)
+
+  base minus cvar                              n= 288 | succ +0.038 [-0.014,+0.090] p=0.207 (26/37) | fall +0.028 [-0.028,+0.083] p=0.374 (27/35) | time -0.066 [-0.101,-0.035] p=0.000 (23/4)
+  ctrl minus cvar                              n= 288 | succ +0.010 [-0.045,+0.062] p=0.798 (29/32) | fall +0.000 [-0.052,+0.052] p=1.000 (29/29) | time -0.010 [-0.045,+0.024] p=0.701 (15/12)
+  scc05 minus cvar                             n= 288 | succ +0.156 [+0.104,+0.212] p=0.000 (12/57) | fall -0.090 [-0.142,-0.038] p=0.001 (43/17) | time -0.066 [-0.097,-0.035] p=0.000 (22/3)
+  scc10 minus cvar                             n= 288 | succ +0.170 [+0.118,+0.222] p=0.000 (9/58) | fall -0.101 [-0.149,-0.056] p=0.000 (42/13) | time -0.069 [-0.104,-0.035] p=0.000 (24/4)
+  scc05aci minus cvar                          n= 288 | succ +0.118 [+0.062,+0.170] p=0.000 (19/53) | fall -0.049 [-0.097,+0.000] p=0.076 (34/20) | time -0.069 [-0.108,-0.035] p=0.000 (25/5)
+  scc10aci minus cvar                          n= 288 | succ +0.076 [+0.024,+0.128] p=0.008 (21/43) | fall -0.014 [-0.069,+0.042] p=0.708 (34/30) | time -0.062 [-0.097,-0.028] p=0.001 (24/6)
+  eq43 minus cvar                              n= 144 | succ +0.049 [-0.028,+0.125] p=0.281 (12/19) | fall +0.007 [-0.076,+0.083] p=1.000 (17/18) | time -0.056 [-0.104,-0.007] p=0.057 (11/3)
+  rand05 minus cvar                            n= 288 | succ +0.080 [+0.024,+0.135] p=0.009 (24/47) | fall +0.003 [-0.049,+0.056] p=1.000 (30/31) | time -0.083 [-0.118,-0.049] p=0.000 (26/2)
+  rand10 minus cvar                            n= 288 | succ +0.104 [+0.049,+0.160] p=0.000 (19/49) | fall -0.021 [-0.073,+0.028] p=0.519 (33/27) | time -0.083 [-0.118,-0.052] p=0.000 (25/1)
+  pw10 minus cvar                              n= 144 | succ +0.160 [+0.083,+0.236] p=0.000 (6/29) | fall -0.097 [-0.174,-0.028] p=0.016 (22/8) | time -0.062 [-0.111,-0.014] p=0.022 (11/2)
+  pi0 minus cvar                               n= 288 | succ +0.174 [+0.115,+0.229] p=0.000 (14/64) | fall -0.073 [-0.125,-0.021] p=0.011 (42/21) | time -0.101 [-0.135,-0.066] p=0.000 (29/0)
+  pi0fast minus cvar                           n= 288 | succ +0.236 [+0.181,+0.292] p=0.000 (5/73) | fall -0.135 [-0.184,-0.090] p=0.000 (46/7) | time -0.101 [-0.139,-0.069] p=0.000 (29/0)
+
+Key contrasts (b minus a), matched episodes:
+  scc05 minus rand05                           n= 288 | succ +0.076 [+0.028,+0.125] p=0.003 (15/37) | fall -0.094 [-0.142,-0.045] p=0.000 (40/13) | time +0.017 [-0.003,+0.038] p=0.227 (3/8)
+  scc10 minus rand10                           n= 288 | succ +0.066 [+0.021,+0.111] p=0.007 (13/32) | fall -0.080 [-0.125,-0.038] p=0.001 (33/10) | time +0.014 [-0.007,+0.035] p=0.344 (3/7)
+  scc05 minus pi0                              n= 288 | succ -0.017 [-0.056,+0.024] p=0.500 (20/15) | fall -0.017 [-0.056,+0.021] p=0.487 (19/14) | time +0.035 [+0.017,+0.059] p=0.002 (0/10)
+  scc10 minus pi0                              n= 288 | succ -0.003 [-0.045,+0.038] p=1.000 (20/19) | fall -0.028 [-0.069,+0.010] p=0.256 (23/15) | time +0.031 [+0.014,+0.052] p=0.004 (0/9)
+  scc10 minus eq43                             n= 144 | succ +0.132 [+0.069,+0.194] p=0.000 (3/22) | fall -0.118 [-0.181,-0.056] p=0.000 (20/3) | time -0.014 [-0.049,+0.021] p=0.688 (4/2)
+  pw10 minus scc10                             n= 144 | succ -0.021 [-0.062,+0.021] p=0.508 (6/3) | fall +0.014 [-0.021,+0.049] p=0.727 (3/5) | time +0.007 [+0.000,+0.021] p=1.000 (0/1)
+  scc05aci minus scc05                         n= 288 | succ -0.038 [-0.083,+0.007] p=0.152 (30/19) | fall +0.042 [-0.003,+0.087] p=0.096 (16/28) | time -0.003 [-0.031,+0.021] p=1.000 (8/7)
+  scc10aci minus scc10                         n= 288 | succ -0.094 [-0.139,-0.049] p=0.000 (37/10) | fall +0.087 [+0.045,+0.132] p=0.000 (8/33) | time +0.007 [-0.017,+0.031] p=0.774 (5/7)
+  rand05 minus base                            n= 288 | succ +0.042 [-0.014,+0.097] p=0.169 (26/38) | fall -0.024 [-0.076,+0.031] p=0.450 (35/28) | time -0.017 [-0.035,+0.000] p=0.125 (6/1)
+  rand10 minus base                            n= 288 | succ +0.066 [+0.014,+0.118] p=0.016 (19/38) | fall -0.049 [-0.094,-0.003] p=0.065 (32/18) | time -0.017 [-0.042,+0.003] p=0.227 (8/3)
+  eq43 minus base                              n= 144 | succ +0.042 [-0.028,+0.111] p=0.345 (11/17) | fall -0.056 [-0.132,+0.014] p=0.200 (19/11) | time +0.014 [-0.021,+0.049] p=0.688 (2/4)
+  pi0fast minus pi0                            n= 288 | succ +0.062 [+0.031,+0.097] p=0.000 (3/21) | fall -0.062 [-0.094,-0.031] p=0.000 (21/3) | time +0.000 [+0.000,+0.000] p=1.000 (0/0)
+
+======================================================================================================================================================
+CONTINUE / STOP CRITERIA (N3), post-shift episodes
+======================================================================================================================================================
+(a) fall rate under shift with ACI within +-0.02 of the target (target = alpha of the arm; the fall rate floor of the fallback alone is the pi_0 row):
+  scc05aci   fall 0.146 [0.108,0.188] target 0.05  |fall - target| = 0.096  -> NOT within +-0.02   (interval overlaps [target-0.02, target+0.02]: False)
+  scc10aci   fall 0.181 [0.135,0.226] target 0.10  |fall - target| = 0.081  -> NOT within +-0.02   (interval overlaps [target-0.02, target+0.02]: False)
+  scc05      fall 0.104 [0.073,0.139] target 0.05  |fall - target| = 0.054  -> NOT within +-0.02   (interval overlaps [target-0.02, target+0.02]: False)
+  scc10      fall 0.094 [0.059,0.128] target 0.10  |fall - target| = 0.006  -> WITHIN +-0.02   (interval overlaps [target-0.02, target+0.02]: True)
+  reference pi0: fall 0.122 [0.087,0.160] (an always-defer policy cannot go below this)
+  reference pi0fast: fall 0.059 [0.035,0.087] (an always-defer policy cannot go below this)
+(b) success at equal (or lower) fall rate at least 0.03 above the CVaR arm (paired, post-shift; in distribution below):
+  scc05aci   success diff +0.118 [+0.062,+0.174]  fall diff -0.049 [-0.097,+0.000]  -> success gain >= 0.03: True (CI lower bound >= 0.03: True); fall not higher: True
+  scc10aci   success diff +0.076 [+0.024,+0.132]  fall diff -0.014 [-0.069,+0.038]  -> success gain >= 0.03: True (CI lower bound >= 0.03: False); fall not higher: True
+  scc05      success diff +0.156 [+0.101,+0.208]  fall diff -0.090 [-0.142,-0.038]  -> success gain >= 0.03: True (CI lower bound >= 0.03: True); fall not higher: True
+  scc10      success diff +0.170 [+0.118,+0.222]  fall diff -0.101 [-0.149,-0.052]  -> success gain >= 0.03: True (CI lower bound >= 0.03: True); fall not higher: True
+

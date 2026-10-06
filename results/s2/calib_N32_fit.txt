@@ -1,0 +1,43 @@
+S2 calibration summary, base planner N=32 (open-loop CEM, M=8, chained CRN, 3 iterations), wind 0.09, seeds 1000+m
+model 0: states 4000, episodes 76, mean model fall prob 0.0070, mean true fall prob 0.0431, P(pT>0.1) 0.157, P(pT>0.2) 0.076, mean j 1.257, mean L 1.378, realised F rate (resolved) 0.0026
+model 1: states 4000, episodes 70, mean model fall prob 0.0069, mean true fall prob 0.0405, P(pT>0.1) 0.149, P(pT>0.2) 0.076, mean j 1.321, mean L 1.449, realised F rate (resolved) 0.0078
+model 2: states 4000, episodes 72, mean model fall prob 0.0070, mean true fall prob 0.0354, P(pT>0.1) 0.133, P(pT>0.2) 0.058, mean j 1.381, mean L 1.500, realised F rate (resolved) 0.0130
+total calibration states 12000
+
+(1) Held-out coverage of the executed plan (episode-level 50/50 split, 10 repeats, per-model calibration then pooled over models)
+functional                   alpha         selected-plan band             pointwise band  width sel / pw
+fall probability              0.05        0.951 [0.937,0.959]        0.944 [0.935,0.950]  0.225 / 0.211   (nominal 0.95)
+fall probability              0.10        0.902 [0.882,0.921]        0.895 [0.879,0.910]  0.138 / 0.131   (nominal 0.90)
+total planner cost            0.05        0.952 [0.946,0.955]        0.935 [0.931,0.937]  0.813 / 0.704   (nominal 0.95)
+total planner cost            0.10        0.903 [0.884,0.926]        0.882 [0.867,0.908]  0.526 / 0.441   (nominal 0.90)
+
+(2) Two-stage rule, offline on held-out episodes: commit rate (stage 1, stage 2), false-commit rate FCR = P(commit and true H-step fall prob > b)
+    b alpha band      q1      q2 commit s1 commit s2  defer    FCR   (FCR target alpha)
+ 0.05  0.05  sel   0.227   0.058     0.000     0.036  0.964  0.000
+ 0.05  0.05   pw   0.212   0.040     0.000     0.588  0.412  0.005
+ 0.05  0.10  sel   0.134   0.030     0.000     0.653  0.347  0.009
+ 0.05  0.10   pw   0.129   0.013     0.000     0.741  0.259  0.025
+ 0.10  0.05  sel   0.227   0.058     0.000     0.758  0.242  0.004
+ 0.10  0.05   pw   0.212   0.040     0.000     0.806  0.194  0.009
+ 0.10  0.10  sel   0.141   0.031     0.000     0.830  0.170  0.015
+ 0.10  0.10   pw   0.131   0.013     0.000     0.858  0.142  0.021
+ 0.15  0.05  sel   0.228   0.057     0.000     0.868  0.132  0.006
+ 0.15  0.05   pw   0.213   0.041     0.000     0.896  0.104  0.011
+ 0.15  0.10  sel   0.138   0.062     0.699     0.261  0.039  0.068
+ 0.15  0.10   pw   0.131   0.048     0.957     0.030  0.013  0.088
+ 0.20  0.05  sel   0.226   0.072     0.253     0.685  0.061  0.018
+ 0.20  0.05   pw   0.216   0.050     0.254     0.695  0.050  0.020
+ 0.20  0.10  sel   0.139   0.070     0.955     0.034  0.011  0.059
+ 0.20  0.10   pw   0.130   0.047     0.956     0.034  0.011  0.061
+ 0.30  0.05  sel   0.229   0.102     0.955     0.038  0.007  0.023
+ 0.30  0.05   pw   0.213   0.077     0.960     0.035  0.005  0.023
+ 0.30  0.10  sel   0.137     inf     0.993     0.000  0.007  0.026
+ 0.30  0.10   pw   0.131     inf     0.994     0.000  0.006  0.025
+
+(3) Fit on all calibration states with b = 0.1
+model 0 alpha 0.05: q1_sel 0.2350 (n 4000) escalated 1.000 q2_sel 0.0625 (n 4000) | q1_pw 0.2150 escalated 1.000 q2_pw 0.0463
+model 0 alpha 0.10: q1_sel 0.1450 (n 4000) escalated 1.000 q2_sel 0.0356 (n 4000) | q1_pw 0.1350 escalated 1.000 q2_pw 0.0188
+model 1 alpha 0.05: q1_sel 0.2400 (n 4000) escalated 1.000 q2_sel 0.0531 (n 4000) | q1_pw 0.2250 escalated 1.000 q2_pw 0.0388
+model 1 alpha 0.10: q1_sel 0.1450 (n 4000) escalated 1.000 q2_sel 0.0281 (n 4000) | q1_pw 0.1450 escalated 1.000 q2_pw 0.0125
+model 2 alpha 0.05: q1_sel 0.2050 (n 4000) escalated 1.000 q2_sel 0.0569 (n 4000) | q1_pw 0.1900 escalated 1.000 q2_pw 0.0331
+model 2 alpha 0.10: q1_sel 0.1250 (n 4000) escalated 1.000 q2_sel 0.0275 (n 4000) | q1_pw 0.1100 escalated 1.000 q2_pw 0.0094
