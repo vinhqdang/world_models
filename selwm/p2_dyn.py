@@ -30,7 +30,7 @@ def vdp(x, mu=2.0):
 
 SYS = {
     "lorenz": dict(f=lorenz, dim=3, dt=0.02, sub=4, spin=1000, lyap=0.906, T=400, thr_T=55),
-    "vdp": dict(f=vdp, dim=2, dt=0.2, sub=20, spin=0, lyap=0.0, T=300, thr_T=38),
+    "vdp": dict(f=vdp, dim=2, dt=0.2, sub=20, spin=0, lyap=0.0, T=1000, thr_T=38),
 }
 
 

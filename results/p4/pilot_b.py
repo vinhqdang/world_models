@@ -24,17 +24,17 @@ def sample_task(r):
         s = np.array([r.uniform(-0.55, -0.05), r.uniform(-0.3, 0.3)]); g = np.array([r.uniform(0.05, 0.55), r.uniform(-0.3, 0.3)])
         return s, g
 class Ens(nn.Module):
-    def __init__(s, K=5, h=128):
+    def __init__(s, K=4, h=128):
         super().__init__(); s.K = K
         s.nets = nn.ModuleList([nn.Sequential(nn.Linear(4, h), nn.GELU(), nn.Linear(h, h), nn.GELU(), nn.Linear(h, 2)) for _ in range(K)])
     def member(s, k, x, a): return x + 0.12 * s.nets[k](torch.cat([x, a], -1))   # delta param. scaled
     def mean(s, x, a): return torch.stack([s.member(k, x, a) for k in range(s.K)]).mean(0)
-def fit(ens, D, seed, epochs=400):
+def fit(ens, D, seed, epochs=150):
     S, A, S2 = [torch.tensor(np.array(v), dtype=torch.float32) for v in D]
     n = len(S); g = torch.Generator().manual_seed(seed)
     for k, net in enumerate(ens.nets):
         for p in net.parameters(): nn.init.normal_(p, 0, 0.1) if p.dim() > 1 and False else None
-        opt = torch.optim.Adam(net.parameters(), lr=2e-3)
+        opt = torch.optim.Adam(net.parameters(), lr=3e-3)
         idx_b = torch.randint(0, n, (n,), generator=torch.Generator().manual_seed(seed * 100 + k))   # bootstrap
         Sb, Ab, S2b = S[idx_b], A[idx_b], S2[idx_b]
         for ep in range(epochs):
@@ -77,7 +77,7 @@ def rollout_real(s, plan):
     for h in range(plan.shape[0]):
         s2 = env_step(s, plan[h]); out.append((s.copy(), plan[h].copy(), s2.copy())); s = s2
     return out
-def run(strategy, seed, rounds=6, B=204, n0=300):
+def run(strategy, seed, rounds=5, B=204, n0=300):
     r = np.random.RandomState(seed); torch.manual_seed(seed); rng = torch.Generator().manual_seed(seed + 5)
     # initial random data from the whole arena (uniform)
     S0 = r.uniform(-1, 1, (n0, 2)); A0 = r.uniform(-1, 1, (n0, 2)); D = [list(S0), list(A0), list(env_step(S0, A0))]

@@ -5,3 +5,6 @@ Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pyto
 step      1 loss 0.3672 pred 0.3672 sigreg 0.0000  0s
 step    500 loss 0.1178 pred 0.1178 sigreg 0.0000  52s
 step   1000 loss 0.1095 pred 0.1095 sigreg 0.0000  105s
+step   1500 loss 0.1030 pred 0.1030 sigreg 0.0000  164s
+step   2000 loss 0.1089 pred 0.1089 sigreg 0.0000  226s
+saved results/p3/ckpt/es_low_s11.pt
