@@ -1,0 +1,42 @@
+Q: all:"normally hyperbolic" AND all:"learned" AND all:"dynamics"
+
+Q: all:"data as demonstrator"
+  2610.01949v1 | A Hybrid Approach to Malware Detection: Integrating Few-Shot Model-Agnostic Meta-Learning with Autoencoders
+  2610.01726v2 | Query-Conditioned Articulation Estimation from a Single Image
+  2610.00894v1 | Clock Diffusion: Efficient Semi-Autoregressive Continuous Diffusion Language Models
+  2610.00569v1 | Scaling Collider Event Generation with Residual-Quantized Tokens
+  2609.39806v1 | $μ$SR measurements of 3D Ising ferromagnetism in bulk Fe$_3$GeTe$_2$ crystals
+  2609.37677v1 | Learning Expressive and Compositional Motion Representation via Spectral Skills
+  2609.37602v1 | When to Adapt: Multi-Signal Domain Shift Detection for Efficient Training-Free Adaptation in Open-Vocabulary Segmentation
+  2609.36594v1 | Optimal detection of general moment changes: Simultaneous mean and covariance change detection and beyond
+Q: all:"noise injection" AND all:"learned dynamics" AND all:"rollout" AND all:"Jacobian"
+
+Q: all:"generalized teacher forcing" AND all:"chaotic"
+  2306.04406v2 | Generalized Teacher Forcing for Learning Chaotic Dynamics
+Q: all:"Jacobian matching" AND all:"statistical accuracy" AND all:"dynamical"
+
+Q: all:"tangent" AND all:"normal" AND all:"noise" AND all:"learned dynamics" AND all:"manifold"
+  2302.02563v2 | Stochastic Gradient Descent-Induced Drift of Representation in a Two-Layer Neural Network
+Q: all:"parareal" AND all:"neural" AND all:"learned"
+  2510.07672v2 | Parallel-in-Time Solution of Allen-Cahn Equations by Integrating Operator Learning into the Parareal Method
+  2411.06225v1 | RandNet-Parareal: a time-parallel PDE solver using Random Neural Networks
+  2404.02521v2 | Space-time parallel scaling of Parareal with a physics-informed Fourier Neural Operator coarse propagator applied to the Black-Scholes equation
+  2402.02304v6 | Efficient Numerical Wave Propagation Enhanced By An End-to-End Deep Learning Model
+  2303.03848v2 | Parareal with a physics-informed neural network as coarse propagator
+  2107.13184v2 | Numerical wave propagation aided by deep learning
+  1912.05958v2 | Parareal with a Learned Coarse Model for Robotic Manipulation
+  1909.10145v1 | PPINN: Parareal Physics-Informed Neural Network for time-dependent PDEs
+Q: all:"adaptive step" AND all:"learned" AND all:"error estimate" AND all:"world model"
+
+Q: all:"attracting manifold" AND all:"latent" AND all:"world model"
+
+Q: all:"stability" AND all:"learned simulator" AND all:"noise" AND all:"rollout" AND all:"mesh"
+
+Q: all:"off-manifold" AND all:"rollout" AND all:"dynamics model" AND all:"contract"
+
+Q: all:"denoising" AND all:"autoregressive" AND all:"PDE" AND all:"refiner"
+  2604.17149v2 | FlowRefiner: Flow Matching-Based Iterative Refinement for 3D Turbulent Flow Simulation
+Q: all:"latent" AND all:"JEPA" AND all:"collapse" AND all:"rollout" AND all:"drift" AND all:"regularization"
+
+Q: all:"temporal abstraction" AND all:"compounding error" AND all:"latent" AND all:"planning"
+

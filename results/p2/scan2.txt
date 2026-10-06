@@ -1,0 +1,42 @@
+Q: all:"error propagation" AND all:"latent" AND all:"world model" AND all:"bound"
+
+Q: all:"teacher forcing" AND all:"free-running" AND all:"latent"
+
+Q: all:"exposure bias" AND all:"world model"
+  2609.35138v2 | FlexiWorld: Learning and Planning via Flexible Action Chunks Across Multiple Time Scales
+  2603.12655v1 | VGGT-World: Transforming VGGT into an Autoregressive Geometry World Model
+  2512.12080v1 | BAgger: Backwards Aggregation for Mitigating Drift in Autoregressive Video Diffusion Models
+  2510.18313v6 | OmniNWM: Omniscient Driving Navigation World Models
+  2509.25161v1 | Rolling Forcing: Autoregressive Long Video Diffusion in Real Time
+Q: all:"rollout" AND all:"data manifold" AND all:"latent predictor"
+
+Q: all:"contractive" AND all:"latent dynamics" AND all:"stable"
+  2605.16754v1 | Stable Fiber-Koopman Residual Dynamics for Environment-Constrained Robust Control
+  2605.13453v1 | Learning a Contracting KKL-observer with Local Optimal Guarantees
+  2603.22871v1 | Dynamical Systems Theory Behind a Hierarchical Reasoning Model
+  2601.19551v1 | Scale-Consistent State-Space Dynamics via Fractal of Stationary Transformations
+Q: all:"Lyapunov" AND all:"world model" AND all:"learned" AND all:"stability"
+  2602.04821v1 | Safe Urban Traffic Control via Uncertainty-Aware Conformal Prediction and World-Model Reinforcement Learning
+Q: all:"long-term statistics" AND all:"neural" AND all:"chaotic" AND all:"emulator"
+
+Q: all:"shadowing" AND all:"learned dynamics"
+  2604.07363v1 | Benchmark Shadows: Data Alignment, Parameter Footprints, and Generalization in Large Language Models
+  2508.17712v1 | NGD: Neural Gradient Based Deformation for Monocular Garment Reconstruction
+  2309.12631v1 | Learning the eigenstructure of quantum dynamics using classical shadows
+Q: all:"horizon" AND all:"predictability" AND all:"learned world model" AND all:"theorem"
+  2607.01537v1 | Certified World Models as Sensing Clocks: Drift-Aware Deadlines for Active Perception
+Q: all:"stable rollout" AND all:"world model" AND all:"regulariz"
+
+Q: all:"model-based RL" AND all:"compounding error" AND all:"bound"
+
+Q: all:"multi-step" AND all:"model learning" AND all:"horizon" AND all:"compounding"
+  2504.16680v3 | Uncertainty-Aware Robotic World Model Makes Offline Model-Based Reinforcement Learning Work on Real Robots
+  2402.03146v1 | A Multi-step Loss Function for Robust Learning of the Dynamics in Model-based Reinforcement Learning
+Q: all:"Koopman" AND all:"world model" AND all:"long-horizon"
+  2607.19719v2 | Koopman Dreamer: Spectrally Constrained Latent Dynamics for Stable World-Model Imagination
+Q: all:"hierarchical" AND all:"JEPA" AND all:"long-horizon"
+  2609.31868v1 | Metro-WM: Long-Horizon Latent Planning with Realisable Sub-Goals
+  2606.09311v1 | FF-JEPA: Long-Horizon Planning in World Models with Latent Planners
+  2606.20627v2 | Latent Goal Prediction from Language for Model-Based Planning
+  2603.22281v2 | ThinkJEPA: Empowering Latent World Models with Large Vision-Language Reasoning Model
+  2602.23058v2 | GeoWorld: Geometric World Models

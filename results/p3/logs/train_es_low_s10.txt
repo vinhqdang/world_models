@@ -1,0 +1,10 @@
+data (29896, 2) fall transitions 0.025
+/home/user/world_models/experiments/train_wm.py:47: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  print(f'step {step:6d} loss {float(loss):.4f} pred {info["pred"]:.4f} sigreg {info["sigreg"]:.4f}  {time.time()-t0:.0f}s', flush=True)
+step      1 loss 0.4872 pred 0.4872 sigreg 0.0000  0s
+step    500 loss 0.1134 pred 0.1134 sigreg 0.0000  56s
+step   1000 loss 0.1229 pred 0.1229 sigreg 0.0000  110s
+step   1500 loss 0.1031 pred 0.1031 sigreg 0.0000  163s
+step   2000 loss 0.1041 pred 0.1041 sigreg 0.0000  216s
+saved results/p3/ckpt/es_low_s10.pt

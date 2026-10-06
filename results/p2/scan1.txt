@@ -1,0 +1,62 @@
+Q: all:"compounding error" AND all:"world model"
+  2609.33104v1 | VPTwin: Real-Sim-Real Video Prediction for Robotic Manipulation Planning
+  2608.04964v1 | WorldCycle: Self-Verifiable Reinforcement Learning for Long-Horizon Video World Models
+  2607.27036v1 | Mitigating Compounding Error via Video Representation Regularization
+  2607.24267v1 | FeelWorld: Visuo-Tactile World Model for Hierarchical Contact Prediction and Planning
+  2607.05966v1 | Imagined Rollouts are Kinematic, Not Dynamic: A Diagnosis of Long-Horizon World-Model Failure
+  2609.09163v1 | World-Time Compute with Verified Code World Models
+  2607.00148v1 | 3D Point World Models: Point Completion Enables More Accurate Dynamics Learning
+  2606.21775v1 | Beyond the Next Step: Variable-Length Latent World Models for Long-Horizon Planning
+Q: all:"long-horizon rollout" AND all:"latent dynamics"
+  2609.33205v1 | SMORE: Stability-Promoting Mesh-Agnostic Model Reduction for Time-Dependent PDEs
+  2609.30198v1 | Beyond Compression: Training Latent Representations for Stable Long-Horizon Rollout in Neural Surrogate Solvers
+  2608.05371v1 | Quantum-Structured World Models (QSWMs) for Predictive Latent Dynamics
+  2608.04060v1 | SJEPA: Learning Elegant Latent Dynamics with Hybrid Symbolic-Neural Predictors
+  2607.26712v2 | ActSWM: Action-Sensitive World Models for Long-Horizon Planning in Open-World Games
+  2604.13820v1 | Stable Long-Horizon Neural ODE Reduced-Order Models via Learned Feedback for Biological Growth and Remodeling
+  2603.03238v1 | On Geometry Regularization in Autoencoder Reduced-Order Models with Latent Neural ODE Dynamics
+  2602.16209v1 | Geometric Neural Operators via Lie Group-Constrained Latent Dynamics
+Q: all:"contraction" AND all:"world model" AND all:"rollout"
+  2610.03744v1 | Black-Scholes for the land: modelling savannah response to rain as a dynamic world model
+  2609.20892v1 | WM-VS: Progress-Aligned World Models for Closed-Loop Visual Servoing
+  2609.17210v1 | FluxVLA Engine: A One-Stop VLA Engineering Platform for Embodied Intelligence
+  2609.02886v1 | SolarWM: Open Data and Scalable Training for Long-Horizon Video World Models
+  2608.09298v1 | WorldSimProbe: Diagnosing Simulator Faithfulness in Action-Conditioned World Models for Embodied Manipulation
+  2608.08689v1 | A Structural Dynamics Graph World Model: Unified Modeling, Constrained Rollout, and Interpretable Calibration
+  2606.13092v3 | Certified World Models: Predictability Across Configuration, Horizon, and Resolution
+Q: all:"invariant measure" AND all:"learned dynamics"
+  2607.21805v1 | Natural Invariant Measures for Chaotic Game Dynamics: Finding Order in Chaos
+  2607.00391v1 | Data-Adaptive Learning of Dynamical Systems by Matching Transfer Operators and Invariant Measures
+  2505.05085v3 | Learning dynamically inspired bases for Koopman and transfer operator approximation
+  2503.14702v1 | Learning Chaos In A Linear Way
+  2402.04467v2 | DySLIM: Dynamics Stable Learning by Invariant Measure for Chaotic Systems
+  2301.05193v3 | Learning dynamics on invariant measures using PDE-constrained optimization
+Q: all:"autoregressive rollout" AND all:"stability" AND all:"neural surrogate"
+  2609.30198v1 | Beyond Compression: Training Latent Representations for Stable Long-Horizon Rollout in Neural Surrogate Solvers
+  2605.06591v1 | BRICKS: Compositional Neural Markov Kernels for Zero-Shot Radiation-Matter Simulation
+  2604.02876v1 | Toward an Operational GNN-Based Multimesh Surrogate for Fast Flood Forecasting
+Q: all:"pushforward trick"
+  2506.05513v1 | Geometric and Physical Constraints Synergistically Enhance Neural PDE Surrogates
+Q: all:"rollout error" AND all:"Lipschitz" AND all:"latent"
+  2608.22764v1 | LpWM: A Case for Sparse Representations in World Models
+Q: all:"multi-step" AND all:"JEPA" AND all:"predictor"
+  2609.10464v1 | Semigroup-JEPA: Latent Dynamics Consistency for Zero-Shot Physics Generalization
+  2607.25337v2 | Temporal-Distance JEPA: Plan-Aware Representation Learning for Latent World Model Predictive Control
+  2607.16314v1 | Depth-Regularized JEPA World Models Learn More Transferable Representations from Real Outdoor Robot Data
+  2510.00739v1 | TD-JEPA: Latent-predictive Representations for Zero-Shot Reinforcement Learning
+Q: all:"manifold" AND all:"projection" AND all:"world model" AND all:"drift"
+  2608.27073v2 | SpatialCrafter: Single Image World Modeling with Generative 3D Proxies
+  2510.18313v6 | OmniNWM: Omniscient Driving Navigation World Models
+Q: all:"horizon" AND all:"calibrated" AND all:"world model" AND all:"error"
+  2609.26293v2 | Dual-Frontier: When Can an Agent Trust Its World Model?
+  2609.21482v1 | Adaptive Rollout Truncation Based on Epistemic Uncertainty for Efficient Offline World Model Training
+  2608.29772v1 | Self-Aware Active Learning Enables Continual Improvement in Autonomous Driving
+  2608.19804v1 | ADAPT: Physics-Aware Diffusion-based World Models for Adaptive Predictive Transferable HVAC Control
+  2607.27511v1 | Failure Detection for Surgical Robot Imitation Policies via Flow-Matching World Modeling
+  2607.26789v1 | CheckVLA: Execution-Time Verification with Action-Conditioned World Model for Long-Horizon Mobile Manipulation
+  2607.25242v2 | Medical world models in healthcare: foundations, applications, and challenges for trustworthy clinical translation
+  2607.21645v1 | Multi-Horizon Consistency as Geometry: When Latent Dynamics Contract, and When They Do Not
+Q: all:"noise injection" AND all:"world model" AND all:"rollout"
+  2607.24267v1 | FeelWorld: Visuo-Tactile World Model for Hierarchical Contact Prediction and Planning
+Q: all:"DAgger" AND all:"world model" AND all:"compounding"
+  2604.11351v1 | WM-DAgger: Enabling Efficient Data Aggregation for Imitation Learning with World Models

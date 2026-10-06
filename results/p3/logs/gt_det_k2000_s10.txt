@@ -1,0 +1,1 @@
+{"episodes": 237, "success": 0.6118143459915611, "fall": 0.350210970464135, "timeout": 0.0379746835443038, "median_steps": 53.0, "particle_steps_per_env_step": 1280, "K_mean": null, "sec": 56.95854616165161}
