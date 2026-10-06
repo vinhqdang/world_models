@@ -1,2 +1,3 @@
 {"vpt": 296.5899963378906, "vpt_med": 304.0, "vpt_lyap": 0.0, "blow": 0.0, "edist": 0.007709503173828125, "offman": 0.004022638779133558, "onestep": 0.0014439534861594439, "system": "vdp", "phase": "test", "seed": 0, "method": "iso_10k"}
 {"vpt": 214.94000244140625, "vpt_med": 218.0, "vpt_lyap": 0.0, "blow": 0.0, "edist": 0.011133670806884766, "offman": 0.0036908758338540792, "onestep": 0.0012333898339420557, "system": "vdp", "phase": "test", "seed": 0, "method": "normal_10k"}
+{"vpt": 281.04998779296875, "vpt_med": 299.0, "vpt_lyap": 0.0, "blow": 0.0, "edist": 0.005000591278076172, "offman": 0.014516402035951614, "onestep": 0.0021076046396046877, "system": "vdp", "phase": "test", "seed": 0, "method": "ss_10k"}
