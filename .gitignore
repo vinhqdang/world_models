@@ -230,3 +230,4 @@ suite_*/ckpt/
 suite_cliff/
 suite_fixed/
 *.pt
+results/cwk/data/

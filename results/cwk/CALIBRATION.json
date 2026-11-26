@@ -1,0 +1,248 @@
+{
+ "e1_nu50_gain": {
+  "sigma": 0.758,
+  "gain": 0.5274,
+  "scan": [
+   {
+    "sigma": 0.45,
+    "oracle": 0.860791496333357,
+    "copy": -0.6511505754322782,
+    "ideal": 0.9321239531498374,
+    "rho": 0.4875854927131656
+   },
+   {
+    "sigma": 0.55,
+    "oracle": 0.7535745772696714,
+    "copy": -0.41859390842202515,
+    "ideal": 0.8778868822842719,
+    "rho": 0.49553782382818695
+   },
+   {
+    "sigma": 0.65,
+    "oracle": 0.6229050089121184,
+    "copy": -0.10847402467823475,
+    "ideal": 0.810408387500795,
+    "rho": 0.5027688433417054
+   },
+   {
+    "sigma": 0.75,
+    "oracle": 0.505969853751749,
+    "copy": 0.20448324347123403,
+    "ideal": 0.7494974954133682,
+    "rho": 0.5070591470763283
+   },
+   {
+    "sigma": 0.85,
+    "oracle": 0.42952559693810455,
+    "copy": 0.42461874114711573,
+    "ideal": 0.7112181579357293,
+    "rho": 0.5062134961959693
+   }
+  ],
+  "note": "sigma linearly interpolated to oracle R2 = 0.50 from the scan"
+ },
+ "e1_nu80_gain": {
+  "sigma": 0.802,
+  "gain": 0.431,
+  "scan": [
+   {
+    "sigma": 0.45,
+    "oracle": 0.8976328468344291,
+    "copy": -0.9113492384528659,
+    "ideal": 0.8219415542465565,
+    "rho": 1.7394099596131951
+   },
+   {
+    "sigma": 0.55,
+    "oracle": 0.8076433837784746,
+    "copy": -0.8893268559155876,
+    "ideal": 0.655844210181382,
+    "rho": 1.7891549382542407
+   },
+   {
+    "sigma": 0.65,
+    "oracle": 0.6842251753558062,
+    "copy": -0.8337885017449156,
+    "ideal": 0.42607557443393085,
+    "rho": 1.8175116594958163
+   },
+   {
+    "sigma": 0.75,
+    "oracle": 0.5522331825433224,
+    "copy": -0.7522251029119027,
+    "ideal": 0.184156053156584,
+    "rho": 1.8220285984509126
+   },
+   {
+    "sigma": 0.85,
+    "oracle": 0.4519966175002924,
+    "copy": -0.6804418091268241,
+    "ideal": 0.0033775424999580306,
+    "rho": 1.8186428940528916
+   }
+  ],
+  "note": "sigma linearly interpolated to oracle R2 = 0.50 from the scan"
+ },
+ "e1_nu50_sat": {
+  "sigma": 0.742,
+  "gain": 0.5614,
+  "scan": [
+   {
+    "sigma": 0.45,
+    "oracle": 0.8379626345858052,
+    "copy": -0.6479815791038175,
+    "ideal": 0.8725903385940171,
+    "rho": 0.7862980311997938
+   },
+   {
+    "sigma": 0.55,
+    "oracle": 0.7245655537355098,
+    "copy": -0.44270742462037993,
+    "ideal": 0.7799321913443722,
+    "rho": 0.7989843377988538
+   },
+   {
+    "sigma": 0.65,
+    "oracle": 0.597980648312657,
+    "copy": -0.19211574525751263,
+    "ideal": 0.6745794898386295,
+    "rho": 0.8094647901786961
+   },
+   {
+    "sigma": 0.75,
+    "oracle": 0.49173557193717843,
+    "copy": 0.03891824927091092,
+    "ideal": 0.5857332875639727,
+    "rho": 0.8150613923837768
+   },
+   {
+    "sigma": 0.85,
+    "oracle": 0.42345253099040314,
+    "copy": 0.19101648015677697,
+    "ideal": 0.530245365901771,
+    "rho": 0.8147718259958397
+   }
+  ],
+  "note": "sigma linearly interpolated to oracle R2 = 0.50 from the scan"
+ },
+ "e1_nu50_deadzone": {
+  "sigma": 0.768,
+  "gain": 0.5056,
+  "scan": [
+   {
+    "sigma": 0.45,
+    "oracle": 0.8703571724702077,
+    "copy": -0.6548108190027098,
+    "ideal": 0.9578142399061335,
+    "rho": 0.32539987670488063
+   },
+   {
+    "sigma": 0.55,
+    "oracle": 0.7661677913768916,
+    "copy": -0.41078901339343665,
+    "ideal": 0.9231309908900215,
+    "rho": 0.3287357612649345
+   },
+   {
+    "sigma": 0.65,
+    "oracle": 0.6349041016603871,
+    "copy": -0.06757699251937033,
+    "ideal": 0.8784804667002346,
+    "rho": 0.3328427787121501
+   },
+   {
+    "sigma": 0.75,
+    "oracle": 0.5143778306387923,
+    "copy": 0.2911066518052635,
+    "ideal": 0.8369199292079728,
+    "rho": 0.33581677501779716
+   },
+   {
+    "sigma": 0.85,
+    "oracle": 0.4337933344619497,
+    "copy": 0.5479850073710468,
+    "ideal": 0.8101748065843305,
+    "rho": 0.33525778654563154
+   }
+  ],
+  "note": "sigma linearly interpolated to oracle R2 = 0.50 from the scan"
+ },
+ "e2": {
+  "sigma": 0.6,
+  "gain": 1.12,
+  "wind": 3.0,
+  "primary": "cup_position",
+  "refinement": [
+   {
+    "sigma": 0.58,
+    "force": 2.6,
+    "cup_position_oracle": 0.5469319081925426,
+    "cup_position_copy": -0.04602522156957356,
+    "cup_position_ideal": 0.6553896348613575,
+    "cup_position_rho": 0.7606149525204112,
+    "ball_position_oracle": 0.35047998012006376,
+    "ball_position_copy": 0.769870467310106,
+    "ball_position_ideal": 0.8966972149163128,
+    "ball_position_rho": 0.15904480527448978
+   },
+   {
+    "sigma": 0.6,
+    "force": 3.0,
+    "cup_position_oracle": 0.5046615915745547,
+    "cup_position_copy": 0.07361892131671455,
+    "cup_position_ideal": 0.6658636967654339,
+    "cup_position_rho": 0.6745616684494552,
+    "ball_position_oracle": 0.33334302136856453,
+    "ball_position_copy": 0.793428946065537,
+    "ball_position_ideal": 0.9088182970384462,
+    "ball_position_rho": 0.1367745420572039
+   },
+   {
+    "sigma": 0.62,
+    "force": 3.5,
+    "cup_position_oracle": 0.473581003152705,
+    "cup_position_copy": 0.20214431415462697,
+    "cup_position_ideal": 0.6876454149906719,
+    "cup_position_rho": 0.593357357694173,
+    "ball_position_oracle": 0.32677555592123253,
+    "ball_position_copy": 0.8129398526995743,
+    "ball_position_ideal": 0.913630379147302,
+    "ball_position_rho": 0.12829246117301207
+   }
+  ],
+  "note": "two-step scan (cwk_calibrate.py) then refinement (cwk_calibrate2.py)"
+ },
+ "e3": {
+  "sigma": 0.85,
+  "gain": 0.3062500000000001,
+  "load": 14000.0,
+  "primary": "gripper_position",
+  "refinement": [
+   {
+    "sigma": 0.8,
+    "force": 8000.0,
+    "gripper_position_oracle": 0.5851580086977729,
+    "gripper_position_copy": 0.07444741480894812,
+    "gripper_position_ideal": 0.3926149354995043,
+    "gripper_position_rho": 1.4641359294266671
+   },
+   {
+    "sigma": 0.85,
+    "force": 8000.0,
+    "gripper_position_oracle": 0.5592993396048209,
+    "gripper_position_copy": 0.05369277231303282,
+    "gripper_position_ideal": 0.34685209444627085,
+    "gripper_position_rho": 1.4820669997817733
+   },
+   {
+    "sigma": 0.85,
+    "force": 14000.0,
+    "gripper_position_oracle": 0.5547948502326087,
+    "gripper_position_copy": 0.19859214965556637,
+    "gripper_position_ideal": 0.4469424833791833,
+    "gripper_position_rho": 1.2422531880185472
+   }
+  ],
+  "note": "two-step scan (cwk_calibrate.py) then refinement (cwk_calibrate2.py)"
+ }
+}
