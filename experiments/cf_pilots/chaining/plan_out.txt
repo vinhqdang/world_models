@@ -1,0 +1,2 @@
+hindsight planning T=4 L=5 sf=0.3 E=120 tol=0.3: model-only: 0.06 (med 1.17) | replay (chained residual reuse): 0.27 (med 0.61) | post(learned K): 0.14 (med 0.65) | twin(learned K): 0.23 (med 0.60) | twin(oracle K): 0.14 (med 0.63)
+hindsight planning T=4 L=10 sf=0.3 E=120 tol=0.3: model-only: 0.05 (med 1.10) | replay (chained residual reuse): 0.32 (med 0.47) | post(learned K): 0.13 (med 0.56) | twin(learned K): 0.25 (med 0.48) | twin(oracle K): 0.21 (med 0.53)

@@ -1,0 +1,3 @@
+1-D hindsight planning, T=3, fresh sd 0.0: model 0.265  replay 0.270  post 0.580  twin 0.532  factual sequence 0.105
+1-D hindsight planning, T=3, fresh sd 0.1: model 0.233  replay 0.270  post 0.435  twin 0.502  factual sequence 0.107
+1-D hindsight planning, T=3, fresh sd 0.3: model 0.185  replay 0.245  post 0.210  twin 0.360  factual sequence 0.090
