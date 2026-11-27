@@ -8,13 +8,22 @@ eps_j = tanh(driver_j), each held for a transition, entering through declared ch
                      actuator_affine)
     kind "gain"      a + s eps d m(x) with a profile m: "linear" (m = x), "sat" (tanh(c x) / tanh c, misspecified),
                      "deadzone" (zero for |x| < z, linear after, misspecified), "offset" (m = 1)
+    kind "rotate"    a + s eps J x on two axes (thrust misalignment, J = [[0, -1], [1, 0]]); x = a / (action_gain action_limit)
     forces           world-frame force eps F on a body during the transition (the authors' body_force, composable)
+
+A command channel may carry ``axis`` (index into the declared axes: the channel acts on that actuator only, direction
+(-1)^axis, i.e. a gain fault on one actuator) or ``dir`` (explicit direction over the declared axes). Without either, the
+direction is the authors' alternating +-1 over the declared axes (old cells are unchanged).
+
+Per-driver laws (``driver_laws``, optional): eps_j = tanh(g) (default), gated: Bern(pi) (2 Phi(g) - 1) with a gate taken
+from an independent deterministic stream, gauss_clip: clip(g / c, -1, 1).
 
 ``position_goal_bias`` (Fetch) is applied after the command channels, as in the authors' code.
 """
 import copy
 
 import numpy as np
+from scipy.special import ndtr
 
 from cwk import upstream  # noqa: F401
 from cwm.sims.native import NativeSimulator
@@ -37,16 +46,37 @@ def profile(kind, x, **kw):
     raise ValueError(kind)
 
 
+def law_eps(law, g, gate=None):
+    """Driver value eps in [-1, 1] from the Gaussian driver ``g`` and (gated law) a 0/1 gate; broadcasting."""
+    kind = (law or {}).get("kind", "tanh")
+    g = np.asarray(g, dtype=np.float64)
+    if kind == "tanh":
+        return np.tanh(g)
+    if kind == "gated":
+        return np.asarray(gate, dtype=np.float64) * (2.0 * ndtr(g) - 1.0)
+    if kind == "gauss_clip":
+        return np.clip(g / law.get("c", 3.0), -1.0, 1.0)
+    raise ValueError(kind)
+
+
 class ChannelSimulator(NativeSimulator):
     def __init__(self, spec):
         spec = copy.deepcopy(spec)
         self.channels = spec.pop("channels", [])
         self.forces = spec.pop("forces", [])
+        laws = spec.pop("driver_laws", None)
         self.goal_command = spec.get("mechanism") == "position_goal_bias"
         spec["mechanism"] = "actuator_bias"      # parent: no plant set-up; the plant is handled here
         spec.pop("gain_fraction", None)
         super().__init__(spec)
         self.n_drivers = len(self.channels) + len(self.forces)
+        self.axes = list(spec.get("axes", range(self.action_dim)))
+        if laws is None:
+            self.laws = None
+        else:
+            laws = [laws] * self.n_drivers if isinstance(laws, dict) else list(laws)
+            assert len(laws) == self.n_drivers, "one law per driver"
+            self.laws = laws
         self.reference = self.action_gain * self.action_limit
         self.fields = []
         from cwm.sims.fields import native_field
@@ -64,8 +94,23 @@ class ChannelSimulator(NativeSimulator):
                 self._force_ids.append(mujoco.mj_name2id(self._m, mujoco.mjtObj.mjOBJ_BODY, f["body"]))
 
     # ---- disturbance -------------------------------------------------------------------------------------------
-    def epsilon(self, driver):
-        return np.tanh(np.atleast_1d(np.asarray(driver, dtype=np.float64)))
+    def epsilon(self, driver, gates=None):
+        driver = np.atleast_1d(np.asarray(driver, dtype=np.float64))
+        if self.laws is None:
+            return np.tanh(driver)
+        gates = np.ones(len(driver)) if gates is None else np.asarray(gates, dtype=np.float64)
+        return np.array([float(law_eps(self.laws[j], driver[j], gates[j])) for j in range(len(driver))])
+
+    def channel_direction(self, ch):
+        if "dir" in ch:
+            v = np.zeros(self.action_dim)
+            v[self.axes] = ch["dir"]
+            return v
+        if "axis" in ch:
+            v = np.zeros(self.action_dim)
+            v[self.axes[ch["axis"]]] = (-1.0) ** ch["axis"]
+            return v
+        return self.direction
 
     def command_perturbation(self, action, eps):
         """Normalised-command perturbation of the command channels for the (already gain-scaled) ``action``."""
@@ -73,12 +118,17 @@ class ChannelSimulator(NativeSimulator):
         out = np.zeros_like(x)
         for j, ch in enumerate(self.channels):
             kind = ch.get("kind", "affine")
-            kw = {k: v for k, v in ch.items() if k not in ("kind", "scale")}
+            kw = {k: v for k, v in ch.items() if k not in ("kind", "scale", "dir", "axis")}
+            if kind == "rotate":
+                a0, a1 = self.axes[0], self.axes[1]
+                out[a0] = out[a0] - ch["scale"] * float(eps[j]) * x[a1]
+                out[a1] = out[a1] + ch["scale"] * float(eps[j]) * x[a0]
+                continue
             if kind == "affine":
                 m = profile("affine", x, g=ch.get("g", 1.0))
             else:
                 m = profile(kind, x, **kw)
-            out = out + ch["scale"] * float(eps[j]) * self.direction * m
+            out = out + ch["scale"] * float(eps[j]) * self.channel_direction(ch) * m
         return out
 
     # ---- snapshot / restore (exact: the full MjData is copied) ----------------------------------------------------

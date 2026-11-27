@@ -1,4 +1,6 @@
 """Named worlds: Stage 0/1 (authors' HandReach dial cells) and Stage 2 (rank >= 2 cells)."""
+import numpy as np
+
 from cwk import upstream  # noqa: F401
 from cwk.worlds import World
 from cwm import registry
@@ -127,6 +129,160 @@ def pipeline_cell(world, col, pop, dev=None):
     nominal = [dict(kind="affine", g=float(gshare), scale=float(tot))]
     axes = spec.get("axes", list(range(col["actions"].shape[-1])))
     primary = g["primary"]
-    return Cell(world.name, col, pop, g["coords"], g["groups"], list(axes), spec.get("action_limit", 0.35),
+    cell = Cell(world.name, col, pop, g["coords"], g["groups"], list(axes), spec.get("action_limit", 0.35),
                 spec["action_gain"], nominal=nominal, true_cmd=cmd, dev=dev, iid=world.iid_fraction,
                 primary=primary)
+    cell.world = world
+    cell.r = len(world.channels) + len(world.forces)
+    return cell
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Paper cells (analysis paper, paper_cf/PLAN.md section 3). Amplitudes are calibrated on simulator-only development
+# cohorts by experiments/paper_calibrate.py (keys "info_*", "misalign_*", "force_unit_*" in CALIBRATION.json; the Stage 2
+# keys are untouched). Physics untouched; mechanisms composed by cwk/sim.py.
+
+INFO_ENV = {   # environment tag -> (upstream config, family, action limit, base seed offset)
+    "E1o": dict(base="hand_affine100", fam="hand", alim=0.45, off=8_000_000),
+    "E2o": dict(base="cup", fam="cup", alim=0.35, off=8_100_000),
+    "E3o": dict(base="fetch", fam="fetch", alim=0.48, off=8_200_000),
+}
+OFFSET_SHARE = 0.5          # budget share of the common-offset channel on every axis (r >= d + 1)
+GAUSS_CLIP_C = 3.0          # gauss_clip: eps = clip(driver / 3, -1, 1)
+PI_DEFAULT = 0.2
+VAR_LAW = {"tanh": 0.394, "gauss": 0.111, "gated": None}      # Var(eps) for the variance-matched starting amplitude
+
+
+def law_spec(law, pi=PI_DEFAULT):
+    if law == "tanh":
+        return dict(kind="tanh")
+    if law == "gated":
+        return dict(kind="gated", pi=float(pi))
+    if law in ("gauss", "gauss_clip"):
+        return dict(kind="gauss_clip", c=GAUSS_CLIP_C)
+    raise ValueError(law)
+
+
+def info_key(env, law, pi, r):
+    lw = {"tanh": "tanh", "gauss": "gauss", "gauss_clip": "gauss"}.get(law) or f"gated_p{int(round(pi * 100))}"
+    return f"info_{env}_{lw}_r{r}"
+
+
+def info_dim(env):
+    return {"E1o": 2, "E2o": 2, "E3o": 3}[env]
+
+
+def force_spec(env, scale):
+    if env == "E1o":
+        from cwm.sims import resolve
+        sp = resolve(registry.simulator("hand_load", "population"))
+        return dict(body=sp["force_body"], vector=sp["force_vector"], scale=scale)
+    if env == "E2o":
+        return dict(body="ball", vector=[1.0, 0.0, 0.0], scale=scale)
+    return dict(body="robot0:gripper_link", vector=[1.0, 0.0, 0.0], scale=scale)
+
+
+def info_channels(env, r, sigma):
+    """Drivers of an information-limited cell: r = d gains (one per actuator), + common offset (r = d + 1),
+    + a force on a body (r = d + 2). Per-axis command budget sigma (no clipping: g alim + sigma <= 0.98 + 0.02 sigma)."""
+    d = info_dim(env)
+    off = OFFSET_SHARE if r >= d + 1 else 0.0
+    ch = [dict(kind="gain", axis=j, scale=sigma * (1 - off)) for j in range(d)]
+    if r >= d + 1:
+        ch.append(dict(kind="offset", scale=sigma * off))
+    return ch
+
+
+def info_cell(env, law="gated", pi=PI_DEFAULT, r=None, iid=1.0, tag=None, sigma=None, calkey=None, seed_offset=None):
+    """Information-limited cell INFOLIM(env, law, pi, r). ``sigma``: per-axis command budget (default: calibrated, else
+    a variance-matched starting value); the force scale is force_unit * sigma."""
+    e = INFO_ENV[env]
+    d = info_dim(env)
+    r = d + 1 if r is None else int(r)
+    assert d <= r <= d + 2
+    key = calkey or info_key(env, law, pi, r)
+    c = _cal(key, None)
+    if sigma is not None:
+        c = dict(sigma=sigma, gain=0.98 * (1 - sigma) / e["alim"])
+    elif c is None:
+        var = (pi / 3.0) if law == "gated" else VAR_LAW["tanh" if law == "tanh" else "gauss"]
+        sg = float(min(0.9, 0.7 * np.sqrt(0.394 / var)))
+        c = dict(sigma=sg, gain=0.98 * (1 - sg) / e["alim"])
+    ch = info_channels(env, r, c["sigma"])
+    forces = []
+    if r == d + 2:
+        fu = _cal(f"force_unit_{env}", dict(unit=1.0))["unit"]
+        forces = [force_spec(env, fu * c["sigma"])]
+    lw = law_spec(law, pi)
+    name = tag or f"{env}_{law}{'' if law != 'gated' else int(round(pi * 100))}_r{r}_iid{int(iid * 100)}"
+    return World(name, e["base"], channels=ch, forces=forces, iid_fraction=iid, overrides=dict(action_gain=c["gain"]),
+                 seed_offset=e["off"] + (0 if seed_offset is None else seed_offset), laws=lw,
+                 note=f"INFOLIM {env} law={law} pi={pi} r={r} sigma={c['sigma']}")
+
+
+def misalign_cell(env="E2o", law="tanh", offset=True, iid=1.0, tag=None, sigma=None, pi=PI_DEFAULT, seed_offset=None):
+    """MISALIGN: thrust-misalignment driver (command perturbation s eps J x on the two actuated axes) plus, optionally, an
+    independent common-offset driver. Ball-in-Cup by default (d = 2)."""
+    e = INFO_ENV[env]
+    key = f"misalign_{env}_{law}{'' if offset else '_nooff'}"
+    c = _cal(key, None)
+    if sigma is not None:
+        c = dict(sigma=sigma, gain=0.98 * (1 - sigma) / e["alim"])
+    elif c is None:
+        c = dict(sigma=0.6, gain=0.98 * 0.4 / e["alim"])
+    ch = [dict(kind="rotate", scale=c["sigma"] * (OFFSET_SHARE if offset else 1.0))]
+    if offset:
+        ch.append(dict(kind="offset", scale=c["sigma"] * OFFSET_SHARE))
+    name = tag or f"MIS_{env}_{law}{'' if offset else '_nooff'}_iid{int(iid * 100)}"
+    return World(name, e["base"], channels=ch, iid_fraction=iid, overrides=dict(action_gain=c["gain"]),
+                 seed_offset=e["off"] + 500_000 + (0 if seed_offset is None else seed_offset), laws=law_spec(law, pi),
+                 note=f"MISALIGN {env} rotate{' + offset' if offset else ''}")
+
+
+def _upstream_cell(name, base, iid=1.0):
+    """The authors' own configuration (offset fault, one driver), for the no-harm check."""
+    if base == "hand_load":
+        return load_cell(name, "hand_load", iid)
+    g = {"hand_affine50": 0.5, "hand_affine100": 1.0}.get(base, 0.0)
+    return dial_cell(name, base, g, iid)
+
+
+UPSTREAM = {
+    "hand": lambda: dial_cell("hand_l0", "hand", 0.0),
+    "cup": lambda: dial_cell("cup", "cup", 0.0),
+    "fetch": lambda: dial_cell("fetch", "fetch", 0.0),
+    "hand_iid50": lambda: dial_cell("hand_iid50", "hand_iid50", 0.0, iid=0.5),
+    "cup_iid50": lambda: dial_cell("cup_iid50", "cup_iid50", 0.0, iid=0.5),
+    "fetch_iid50": lambda: dial_cell("fetch_iid50", "fetch_iid50", 0.0, iid=0.5),
+    "hand_load": lambda: load_cell("hand_load"),
+    "hand_affine50": STAGE0["hand_affine50"],
+    "hand_affine100": STAGE0["hand_affine100"],
+}
+
+# the information-limited design (R2a): name -> constructor
+INFOLIM = {}
+for _env in INFO_ENV:
+    _d = info_dim(_env)
+    INFOLIM[f"{_env}_P"] = (lambda env=_env: info_cell(env, "gated", 0.2, None, 1.0, tag=f"{env}_P"))
+    INFOLIM[f"{_env}_T"] = (lambda env=_env: info_cell(env, "tanh", None, None, 1.0, tag=f"{env}_T"))
+    INFOLIM[f"{_env}_G"] = (lambda env=_env: info_cell(env, "gauss", None, None, 1.0, tag=f"{env}_G"))
+    for _pi in (0.05, 0.1, 0.5, 1.0):
+        INFOLIM[f"{_env}_pi{int(_pi * 100)}"] = (lambda env=_env, pi=_pi: info_cell(env, "gated", pi, None, 1.0, tag=f"{env}_pi{int(pi * 100)}"))
+    INFOLIM[f"{_env}_rd"] = (lambda env=_env: info_cell(env, "gated", 0.2, info_dim(env), 1.0, tag=f"{env}_rd"))
+    INFOLIM[f"{_env}_rd2"] = (lambda env=_env: info_cell(env, "gated", 0.2, info_dim(env) + 2, 1.0, tag=f"{env}_rd2"))
+    INFOLIM[f"{_env}_Piid50"] = (lambda env=_env: info_cell(env, "gated", 0.2, None, 0.5, tag=f"{env}_Piid50", calkey=info_key(env, "gated", 0.2, info_dim(env) + 1) + "_iid50"))
+    INFOLIM[f"{_env}_Pdata1"] = (lambda env=_env: info_cell(env, "gated", 0.2, None, 1.0, tag=f"{env}_Pdata1", seed_offset=1_000_000, calkey=info_key(env, "gated", 0.2, info_dim(env) + 1)))
+    INFOLIM[f"{_env}_Pdata2"] = (lambda env=_env: info_cell(env, "gated", 0.2, None, 1.0, tag=f"{env}_Pdata2", seed_offset=2_000_000, calkey=info_key(env, "gated", 0.2, info_dim(env) + 1)))
+MISALIGN = {"MIS_E2o": lambda: misalign_cell("E2o", "tanh", True),
+            "MIS_E2o_nooff": lambda: misalign_cell("E2o", "tanh", False)}
+ALL_PAPER = {**{k: v for k, v in INFOLIM.items()}, **MISALIGN, **{f"UP_{k}": v for k, v in UPSTREAM.items()}}
+
+
+SEALED_JSON = "/home/user/world_models/results/paper/sealed_cell.json"
+
+
+def sealed_cell(path=SEALED_JSON):
+    """The sealed cell: environment, pi and amplitude drawn by experiments/paper_sealed.py from an RNG seeded with the protocol
+    commit hash (written to ``path``)."""
+    c = json.load(open(path))
+    return info_cell(c["env"], "gated", c["pi"], None, 1.0, tag="SEALED", sigma=c["sigma"], seed_offset=c["seed_offset"])

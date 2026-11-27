@@ -32,6 +32,13 @@ def parent_loss(pred, truth, coords):
     return np.mean(np.sum((p - y) ** 2, -1), axis=(1, 2))
 
 
+def parent_action_loss(pred, truth, coords):
+    """Per (parent, alternative action) loss, mean over draws: (N, K - 1)."""
+    p = np.asarray(pred, np.float64)[:, :, 1:][..., coords]
+    y = np.asarray(truth, np.float64)[:, :, 1:][..., coords]
+    return np.mean(np.sum((p - y) ** 2, -1), axis=1)
+
+
 def oracle_loss(truth, coords):
     """Outcome-blind oracle: unbiased within-parent variance (the exact simulator mean has no estimation error)."""
     y = np.asarray(truth, np.float64)[:, :, 1:][..., coords]

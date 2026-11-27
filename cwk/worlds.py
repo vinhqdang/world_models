@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from cwk import upstream  # noqa: F401
-from cwk.sim import ChannelSimulator
+from cwk.sim import ChannelSimulator, law_eps
 from cwm import registry
 from cwm.sims import resolve
 from cwm.sims.fields import conditional_driver
@@ -32,6 +32,7 @@ class World:
     overrides: dict = field(default_factory=dict)
     note: str = ""
     seed_offset: int = 0
+    laws: object = None                    # per-driver law (dict for all drivers or a list); None: tanh (Stage 0-2 cells)
 
     def sim_spec(self, part):
         spec = resolve(registry.simulator(self.base, part))
@@ -41,6 +42,8 @@ class World:
         spec["benchmark_design"] = dict(spec.get("benchmark_design", {}), iid_fraction=v)
         spec["channels"] = copy.deepcopy(self.channels)
         spec["forces"] = copy.deepcopy(self.forces)
+        if self.laws is not None:
+            spec["driver_laws"] = copy.deepcopy(self.laws)
         spec.update(copy.deepcopy(self.overrides))
         spec["seed"] = int(spec["seed"]) + self.seed_offset
         spec.pop("save_frames", None)
@@ -64,6 +67,25 @@ def _driver_streams(spec, parent, n_drivers):
     return rngs + extra
 
 
+def gate_stream(seed, parent, driver, kind, n):
+    """Uniform stream behind the gate of ``driver``: one independent deterministic stream per (seed, parent, driver) and
+    kind (query draws / prefix transitions); the entry index is the draw (or transition). A draw's gate is therefore a
+    function of (seed, parent, draw, driver) only and is shared by every counterfactual branch of that draw."""
+    tag = {"query": 5000, "prefix": 6000}[kind] + int(driver)
+    return np.random.default_rng(np.random.SeedSequence([int(seed), int(parent), tag])).random(n)
+
+
+def gates_for(env, seed, parent, kind, n):
+    """(n, nd) 0/1 gates (all ones for drivers whose law is not gated); None when the world has no per-driver laws."""
+    if env.laws is None:
+        return None
+    out = np.ones((n, env.n_drivers))
+    for j, law in enumerate(env.laws):
+        if law.get("kind") == "gated":
+            out[:, j] = gate_stream(seed, parent, j, kind, n) < law["pi"]
+    return out
+
+
 def collect(world, n, T=5, start=0, verbose=False):
     """Factual episodes of T transitions: states (n, T+1, D), actions (n, T, p), eps (n, T, nd), drivers.
     Transitions 0, 1: behaviour policy; later transitions: uniform actions on the support."""
@@ -79,13 +101,14 @@ def collect(world, n, T=5, start=0, verbose=False):
             query = streams[0][1]
             state = env.reset(spec["seed"] + parent)
             S[e, 0] = env.target(state)
+            gts = gates_for(env, spec["seed"], parent, "prefix", T)
             for t in range(T):
                 loc = env.location(state, t)
                 g = np.empty(nd)
                 for j in range(nd):
                     innov = (streams[j][0] if t < 2 else streams[j][2]).standard_normal()
                     g[j] = (np.sqrt(1 - v) * env.fields[j](loc, parent)[0] + np.sqrt(v) * innov) if v < 1 else innov
-                eps = env.epsilon(g)
+                eps = env.epsilon(g) if gts is None else env.epsilon(g, gts[t])
                 action = (env.behavior_action(t, prefix) if t < 2 else
                           env.fix_actions(query.uniform(-env.action_limit, env.action_limit, p)))
                 state = env.step(action, eps)
@@ -98,10 +121,11 @@ def collect(world, n, T=5, start=0, verbose=False):
                 action_limit=env.action_limit)
 
 
-def population(world, parents, draws, verbose=False, start=0):
+def population(world, parents, draws, verbose=False, start=0, fd_h=None):
     """Counterfactual evaluation population (authors' protocol). Returns arrays as in branches.npz:
     sources (N, 3, D), past_actions (N, 2, p), past_eps (N, 2, nd), actions (N, k, p), eps (N, E, nd),
-    truth (N, E, k, D), posterior (N, nd, 2)."""
+    truth (N, E, k, D), posterior (N, nd, 2). With ``fd_h`` also the structural linearisation of every parent:
+    fd_y0 (N, k, D) outcome at eps = 0 and fd_J (N, k, D, nd) central finite-difference Jacobian in the drivers."""
     spec = world.sim_spec("population")
     env = ChannelSimulator(spec)
     v, nd, k = float(world.iid_fraction), env.n_drivers, K_ACTIONS
@@ -110,12 +134,15 @@ def population(world, parents, draws, verbose=False, start=0):
     sources, truth = np.empty((n, 3, D)), np.empty((n, e, k, D))
     past_a, past_eps = np.empty((n, 2, p)), np.empty((n, 2, nd))
     actions, eps, post = np.empty((n, k, p)), np.empty((n, e, nd)), np.empty((n, nd, 2))
+    fy0, fJ = np.empty((n, k, D)), np.empty((n, k, D, nd))
     try:
         for ii, i in enumerate(range(start, start + parents)):
             streams = _driver_streams(spec, i, nd)
             prefix, query, noise = streams[0]
             state = env.reset(spec["seed"] + i)
             basis, observed = [], [[] for _ in range(nd)]
+            gp = gates_for(env, spec["seed"], i, "prefix", 2)
+            gq = gates_for(env, spec["seed"], i, "query", e)
             for t in range(2):
                 sources[ii, t] = env.target(state)
                 loc = env.location(state, t)
@@ -125,7 +152,7 @@ def population(world, parents, draws, verbose=False, start=0):
                     innov = streams[j][0].standard_normal()
                     g[j] = np.sqrt(1 - v) * env.fields[j](loc, i)[0] + np.sqrt(v) * innov
                     observed[j].append(g[j])
-                past_eps[ii, t] = env.epsilon(g)
+                past_eps[ii, t] = env.epsilon(g) if gp is None else env.epsilon(g, gp[t])
                 past_a[ii, t] = env.behavior_action(t, prefix)
                 state = env.step(past_a[ii, t], past_eps[ii, t])
             sources[ii, 2] = env.target(state)
@@ -134,10 +161,25 @@ def population(world, parents, draws, verbose=False, start=0):
                 mu, var = conditional_driver(np.asarray(basis), np.asarray(observed[j]), q_basis, v)
                 post[ii, j] = mu, var
                 z = streams[j][2].standard_normal(e) if j > 0 else noise.standard_normal(e)
-                eps[ii, :, j] = np.tanh(mu + np.sqrt(var) * z)
+                if env.laws is None:
+                    eps[ii, :, j] = np.tanh(mu + np.sqrt(var) * z)
+                else:
+                    eps[ii, :, j] = law_eps(env.laws[j], mu + np.sqrt(var) * z, gq[:, j])
             actions[ii, 0] = env.fix_actions(query.uniform(-env.action_limit, env.action_limit, p))
             actions[ii, 1:] = env.fix_actions(query.uniform(-env.action_limit, env.action_limit, (k - 1, p)))
             snap = env.snapshot()
+            if fd_h is not None:
+                for a in range(k):
+                    env.restore(snap)
+                    fy0[ii, a] = env.target(env.query(actions[ii, a], np.zeros(nd)))
+                    for j in range(nd):
+                        ys = []
+                        for sgn in (1.0, -1.0):
+                            env.restore(snap)
+                            ev = np.zeros(nd)
+                            ev[j] = sgn * fd_h
+                            ys.append(env.target(env.query(actions[ii, a], ev)))
+                        fJ[ii, a, :, j] = (ys[0] - ys[1]) / (2 * fd_h)
             for jj in range(e):
                 for a in range(k):
                     env.restore(snap)
@@ -148,9 +190,12 @@ def population(world, parents, draws, verbose=False, start=0):
         env.close()
     rng = np.random.default_rng(spec["seed"] + 317)
     weights = rng.multinomial(n, np.full(n, 1 / n), size=512)
-    return dict(sources=sources, past_actions=past_a, past_eps=past_eps, actions=actions, eps=eps, truth=truth,
-                posterior=post, weights=weights, names=list(env.names), action_limit=env.action_limit,
-                iid_fraction=v)
+    out = dict(sources=sources, past_actions=past_a, past_eps=past_eps, actions=actions, eps=eps, truth=truth,
+               posterior=post, weights=weights, names=list(env.names), action_limit=env.action_limit,
+               iid_fraction=v)
+    if fd_h is not None:
+        out.update(fd_y0=fy0, fd_J=fJ, fd_h=fd_h)
+    return out
 
 
 def save(path, d):
