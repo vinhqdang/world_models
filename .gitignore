@@ -231,3 +231,5 @@ suite_cliff/
 suite_fixed/
 *.pt
 results/cwk/data/
+results/paper/logs/claims/
+results/paper/logs/ready_*
