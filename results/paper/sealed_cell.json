@@ -1,0 +1,28 @@
+{
+ "commit_hash": "bd5b3d1aad7dd5c5e195d076995508280a74c00f",
+ "seed": 13644566680838198725,
+ "env": "E3o",
+ "pi": 0.219,
+ "amplitude_factor": 0.9477,
+ "sigma_calibrated_interp": 0.8188620503326663,
+ "sigma": 0.776,
+ "gain": 0.45733333333333326,
+ "r": 4,
+ "d": 3,
+ "iid": 1.0,
+ "seed_offset": 3000000,
+ "calibration_keys": [
+  "info_E3o_gated_p5_r4",
+  "info_E3o_gated_p10_r4",
+  "info_E3o_gated_p20_r4",
+  "info_E3o_gated_p50_r4",
+  "info_E3o_gated_p100_r4"
+ ],
+ "calibration_sigmas": [
+  0.9199,
+  0.8959,
+  0.8253,
+  0.7603,
+  0.7093
+ ]
+}
